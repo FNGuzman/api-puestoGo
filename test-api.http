@@ -1,0 +1,79 @@
+### Variables de entorno
+@baseUrl = http://localhost:3000
+@authToken = {{login.response.body.access_token}}
+
+### 1. Crear un usuario
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+
+{
+  "nombreUsuario": "usuario_test",
+  "contrasena": "MiContraseña123",
+  "email": "test@ejemplo.com",
+  "activo": true
+}
+
+### 2. Login para obtener token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "usuario_test",
+  "contrasena": "MiContraseña123"
+}
+
+### 3. Buscar usuarios (requiere autenticación)
+GET {{baseUrl}}/usuarios/search?page=1&limit=10
+Authorization: Bearer {{authToken}}
+
+### 4. Obtener usuario por ID (requiere autenticación)
+GET {{baseUrl}}/usuarios/1
+Authorization: Bearer {{authToken}}
+
+### 5. Actualizar usuario (requiere autenticación)
+PATCH {{baseUrl}}/usuarios/1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "email": "nuevo@email.com",
+  "activo": true
+}
+
+### 6. Crear otro usuario para pruebas
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin_test",
+  "contrasena": "Admin123!",
+  "email": "admin@ejemplo.com",
+  "activo": true
+}
+
+### 7. Login con el segundo usuario
+# @name login2
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin_test",
+  "contrasena": "Admin123!"
+}
+
+### 8. Buscar usuarios con filtros
+GET {{baseUrl}}/usuarios/search?page=1&limit=5&activo=true
+Authorization: Bearer {{login2.response.body.access_token}}
+
+### 9. Intentar login con credenciales incorrectas (debe fallar)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "usuario_inexistente",
+  "contrasena": "ContraseñaIncorrecta"
+}
+
+### 10. Intentar acceder a endpoint protegido sin token (debe fallar)
+GET {{baseUrl}}/usuarios/search

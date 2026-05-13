@@ -1,0 +1,5 @@
+export const AUTH_CONSTANTS = {
+    ADMIN_ROLE_ID: 0,
+    SISTEMA_ID: 0,
+    ORGANIZACION_ID: 0,
+}

@@ -1,0 +1,125 @@
+# Plantilla Kubernetes: reemplazar placeholders y usar Secret real (Vault, SealedSecrets, etc.).
+# No versionar credenciales reales en el repositorio.
+
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: api-template
+  labels:
+    app: api-template
+---
+# ConfigMap (variables no sensibles)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-template-config
+  namespace: api-template
+  labels:
+    app: api-template
+data:
+  DB_HOST: "CHANGE_ME_DB_HOST"
+  DB_PORT: "3306"
+  DB_USERNAME: "CHANGE_ME"
+  DB_NAME: "nest-api-template"
+  NODE_ENV: "production"
+  PORT: "3000"
+  CLOUDFLARE_ACCOUNT_ID: ""
+  R2_BUCKET_NAME: ""
+  R2_DEVELOPMENT_URL: ""
+  R2_PRODUCTION_URL: ""
+---
+# Secret: inyectar desde gestor externo o aplicar con valores reales fuera de git
+apiVersion: v1
+kind: Secret
+metadata:
+  name: api-template-secret
+  namespace: api-template
+  labels:
+    app: api-template
+type: Opaque
+stringData:
+  DB_PASSWORD: "CHANGE_ME"
+  JWT_SECRET: "CHANGE_ME_MIN_16_CHARS"
+  ACCESS_TOKEN_SECRET: "CHANGE_ME_MIN_16_CHARS"
+  ACCESS_TOKEN_REFRESH_SECRET: "CHANGE_ME_MIN_16_CHARS"
+  R2_ACCESS_KEY_ID: ""
+  R2_SECRET_ACCESS_KEY: ""
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-template
+  namespace: api-template
+  labels:
+    app: api-template
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-template
+  template:
+    metadata:
+      labels:
+        app: api-template
+    spec:
+      containers:
+        - name: api-template
+          image: your-registry/api-template:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: api-template-config
+            - secretRef:
+                name: api-template-secret
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-template
+  namespace: api-template
+  labels:
+    app: api-template
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app: api-template
+---
+# Ingress (ajustar host y TLS)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-template
+  namespace: api-template
+  labels:
+    app: api-template
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-template
+                port:
+                  number: 80
