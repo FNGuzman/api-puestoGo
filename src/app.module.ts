@@ -12,6 +12,7 @@ import { PersonaModule } from './schematics/persona/persona.module';
 import { AuditModule } from './schematics/audit/audit.module';
 import { NotificationsModule } from './schematics/notifications/notifications.module';
 import { AuthApiModule } from './integrations/auth-api/auth-api.module';
+import { SuscripcionModule } from './schematics/suscripcion/suscripcion.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AuthApiModule } from './integrations/auth-api/auth-api.module';
     }),
     CommonModule,
     EmailModule,
+    SuscripcionModule,
     AuthModule,
     UsuarioModule,
     PersonaModule,

@@ -33,7 +33,8 @@ export interface SubidaImagenOptimizadaResult {
 @Injectable()
 export class R2StorageService {
   private readonly logger = new Logger(R2StorageService.name);
-  private readonly s3Client: S3Client;
+  private readonly s3Client: S3Client | null;
+  private readonly enabled: boolean;
   private readonly allowedMimeTypes = new Set(
     R2_STORAGE_CONFIG.allowedMimeTypes.map((mime) => mime.toLowerCase()),
   );
@@ -41,33 +42,46 @@ export class R2StorageService {
   constructor(
     private readonly imageOptimizationService: ImageOptimizationService,
   ) {
-    this.validateConfiguration();
-    this.s3Client = this.createS3Client();
-    this.logConfiguration();
-  }
-
-  /**
-   * Valida que las credenciales de R2 estén configuradas
-   */
-  private validateConfiguration(): void {
-    if (
-      !R2_CONFIG.accountId ||
-      !R2_CONFIG.accessKeyId ||
-      !R2_CONFIG.secretAccessKey ||
-      !R2_CONFIG.bucketName ||
-      !R2_CONFIG.endpoint
-    ) {
-      throw new Error(
-        'Configuración de R2 incompleta. Verifica accountId, accessKeyId, secretAccessKey, bucketName y endpoint.',
+    this.enabled = this.isR2ConfigurationComplete();
+    if (this.enabled) {
+      this.s3Client = this.createS3Client();
+      this.logConfiguration();
+    } else {
+      this.s3Client = null;
+      this.logger.warn(
+        'R2 no está configurado: la API arranca sin almacenamiento en bucket. Las subidas a R2 fallarán hasta completar CLOUDFLARE_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY y URLs públicas (R2_DEVELOPMENT_URL / R2_PRODUCTION_URL).',
       );
     }
+  }
+
+  /** True si R2 tiene credenciales y endpoint listos para usar. */
+  isConfigured(): boolean {
+    return this.enabled;
+  }
+
+  private isR2ConfigurationComplete(): boolean {
+    return !!(
+      R2_CONFIG.accountId &&
+      R2_CONFIG.accessKeyId &&
+      R2_CONFIG.secretAccessKey &&
+      R2_CONFIG.bucketName &&
+      R2_CONFIG.endpoint
+    );
+  }
+
+  private getClientOrThrow(operation: string): S3Client {
+    if (!this.enabled || !this.s3Client) {
+      throw new BadRequestException(
+        `Almacenamiento R2 no está configurado (${operation}). Completá las variables de Cloudflare R2 o no uses subida de archivos (por ejemplo, registro sin foto de perfil).`,
+      );
+    }
+    return this.s3Client;
   }
 
   /**
    * Crea y configura el cliente S3 para Cloudflare R2
    */
   private createS3Client(): S3Client {
-    // Las credenciales ya fueron validadas en validateConfiguration()
     return new S3Client({
       region: R2_CONFIG.region,
       endpoint: R2_CONFIG.endpoint,
@@ -212,6 +226,7 @@ export class R2StorageService {
     metadata?: Record<string, string>,
   ): Promise<string> {
     try {
+      const client = this.getClientOrThrow('subirArchivo');
       this.validateMimeType(tipoMime);
       this.validateFileSize(buffer.length);
       const tipoMimeNormalizado = this.normalizeContentType(tipoMime, clave);
@@ -228,7 +243,7 @@ export class R2StorageService {
         Metadata: metadata,
       });
 
-      await this.s3Client.send(command);
+      await client.send(command);
       this.logger.log(`Archivo subido exitosamente: ${clave}`);
 
       return this.buildPublicUrl(clave);
@@ -316,12 +331,13 @@ export class R2StorageService {
    */
   async obtenerArchivo(clave: string): Promise<Buffer> {
     try {
+      const client = this.getClientOrThrow('obtenerArchivo');
       const command = new GetObjectCommand({
         Bucket: R2_CONFIG.bucketName,
         Key: clave,
       });
 
-      const response = await this.s3Client.send(command);
+      const response = await client.send(command);
 
       // Convertir el stream a Buffer
       const chunks: Uint8Array[] = [];
@@ -360,12 +376,13 @@ export class R2StorageService {
     expiracionSegundos = 3600,
   ): Promise<string> {
     try {
+      const client = this.getClientOrThrow('obtenerUrlDescarga');
       const command = new GetObjectCommand({
         Bucket: R2_CONFIG.bucketName,
         Key: clave,
       });
 
-      const url = await getSignedUrl(this.s3Client, command, {
+      const url = await getSignedUrl(client, command, {
         expiresIn: expiracionSegundos,
       });
 
@@ -391,6 +408,7 @@ export class R2StorageService {
     expiracionSegundos = 600,
   ): Promise<string> {
     try {
+      const client = this.getClientOrThrow('obtenerUrlSubida');
       this.validateMimeType(tipoMime);
       const tipoMimeNormalizado = this.normalizeContentType(tipoMime, clave);
       const command = new PutObjectCommand({
@@ -399,7 +417,7 @@ export class R2StorageService {
         ContentType: tipoMimeNormalizado,
       });
 
-      const url = await getSignedUrl(this.s3Client, command, {
+      const url = await getSignedUrl(client, command, {
         expiresIn: expiracionSegundos,
       });
 
@@ -417,6 +435,10 @@ export class R2StorageService {
    * @param clave Ruta del archivo a eliminar
    */
   async eliminarArchivo(clave: string): Promise<void> {
+    if (!this.enabled || !this.s3Client) {
+      this.logger.debug(`eliminarArchivo omitido (R2 deshabilitado): ${clave}`);
+      return;
+    }
     try {
       const command = new DeleteObjectCommand({
         Bucket: R2_CONFIG.bucketName,
@@ -436,6 +458,9 @@ export class R2StorageService {
    * @returns true si existe, false si no existe
    */
   async archivoExiste(clave: string): Promise<boolean> {
+    if (!this.enabled || !this.s3Client) {
+      return false;
+    }
     try {
       const command = new HeadObjectCommand({
         Bucket: R2_CONFIG.bucketName,
@@ -465,12 +490,13 @@ export class R2StorageService {
    */
   async obtenerInformacionArchivo(clave: string): Promise<ArchivoInfo> {
     try {
+      const client = this.getClientOrThrow('obtenerInformacionArchivo');
       const command = new HeadObjectCommand({
         Bucket: R2_CONFIG.bucketName,
         Key: clave,
       });
 
-      const response = await this.s3Client.send(command);
+      const response = await client.send(command);
       return {
         tamaño: response.ContentLength || 0,
         tipoMime: response.ContentType || '',
@@ -490,6 +516,7 @@ export class R2StorageService {
    */
   async listarArchivos(prefijo: string, maxKeys = 1000): Promise<string[]> {
     try {
+      const client = this.getClientOrThrow('listarArchivos');
       this.logger.log(`Listando archivos con prefijo: ${prefijo} en R2...`);
 
       const command = new ListObjectsV2Command({
@@ -498,7 +525,7 @@ export class R2StorageService {
         MaxKeys: maxKeys,
       });
 
-      const response = await this.s3Client.send(command);
+      const response = await client.send(command);
 
       const archivos: string[] = [];
       if (response.Contents && response.Contents.length > 0) {

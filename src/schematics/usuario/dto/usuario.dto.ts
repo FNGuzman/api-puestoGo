@@ -1,7 +1,8 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CommonDTO } from 'src/common/dto/common.dto';
 import { Expose, Type } from 'class-transformer';
 import { PersonaDTO } from 'src/schematics/persona/dto/persona.dto';
+import { SuscripcionResumenDto } from 'src/schematics/suscripcion/dto/suscripcion-resumen.dto';
 
 export class UsuarioDTO extends CommonDTO {
   @ApiProperty({ description: 'Email del usuario', example: 'usuario@ejemplo.com' })
@@ -28,6 +29,11 @@ export class UsuarioDTO extends CommonDTO {
   @Expose()
   @Type(() => PersonaDTO)
   persona: PersonaDTO;
+
+  @ApiPropertyOptional({ description: 'Suscripción y plan (PuestoGo)', type: () => SuscripcionResumenDto })
+  @Expose()
+  @Type(() => SuscripcionResumenDto)
+  suscripcion?: SuscripcionResumenDto | null;
 
 }
 

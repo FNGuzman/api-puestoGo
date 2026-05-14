@@ -9,11 +9,13 @@ import { PageDto } from 'src/common/dto/page.dto';
 import * as bcrypt from 'bcrypt';
 import { PersonaMapper } from 'src/schematics/persona/mappers/persona.mapper';
 import { Persona } from 'src/schematics/persona/entities/persona.entity';
+import { SuscripcionService } from 'src/schematics/suscripcion/suscripcion.service';
 
 @Injectable()
 export class UsuarioMapper {
   constructor(
     private personaMapper: PersonaMapper,
+    private suscripcionService: SuscripcionService,
   ) { }
   async entity2DTO(usuario: Usuario): Promise<UsuarioDTO> {
     const dto = plainToInstance(UsuarioDTO, usuario, {
@@ -22,6 +24,7 @@ export class UsuarioMapper {
     if (usuario.persona) {
       dto.persona = await this.personaMapper.entity2DTO(usuario.persona);
     }
+    dto.suscripcion = await this.suscripcionService.toResumenDto(usuario.id);
     return dto;
   }
 

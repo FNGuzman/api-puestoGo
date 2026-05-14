@@ -20,6 +20,7 @@ import { Persona } from '../persona/entities/persona.entity';
 import { FindOptionsRelations } from 'typeorm';
 import { AUTH_CONSTANTS } from 'src/common/constants/constants';
 import { UsuarioProfileImageService } from './services/usuario-profile-image.service';
+import { SuscripcionService } from '../suscripcion/suscripcion.service';
 
 type ActorContext = { id?: number; rolId?: number };
 
@@ -36,6 +37,7 @@ export class UsuarioService {
     private getEntity: GetEntityService,
     private errorHandler: ErrorHandlerService,
     private profileImageService: UsuarioProfileImageService,
+    private suscripcionService: SuscripcionService,
   ) {}
 
   async find(criteria: { where: Record<string, unknown>; relations?: FindOptionsRelations<Usuario> }): Promise<Usuario> {
@@ -68,8 +70,8 @@ export class UsuarioService {
       await this.validateUniqueEmail(request.email);
 
       let urlFotoPerfil: string | null = null;
-      if (file) {
-        urlFotoPerfil = await this.profileImageService.uploadFotoPerfil(file);
+      if (this.profileImageService.hasFotoUpload(file)) {
+        urlFotoPerfil = await this.profileImageService.uploadFotoPerfil(file!);
       }
 
       const newPersona = await this.personaMapper.createDTO2Entity({
@@ -81,6 +83,8 @@ export class UsuarioService {
       const newUsuario = await this.usuarioMapper.createDTO2Entity(request, personaSaved);
       newUsuario.fotoPerfil = urlFotoPerfil;
       const usuarioSaved = await this.usuarioRepository.save(newUsuario);
+
+      await this.suscripcionService.crearSuscripcionPorDefecto(usuarioSaved.id);
 
       const searchUsuario = await this.getEntity.findById(Usuario, usuarioSaved.id, this.USUARIO_RELATIONS);
       return this.usuarioMapper.entity2DTO(searchUsuario);

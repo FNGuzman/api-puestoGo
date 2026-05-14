@@ -12,11 +12,14 @@ import { R2StorageService } from 'src/common/services/r2-storage.service';
 import { ImageOptimizationService } from 'src/common/services/image-optimization.service';
 import { UsuarioProfileImageService } from './services/usuario-profile-image.service';
 import { UsuarioVerificationService } from './services/usuario-verification.service';
+import { UsuarioPasswordRecoveryService } from './services/usuario-password-recovery.service';
+import { SuscripcionModule } from '../suscripcion/suscripcion.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Usuario]),
     forwardRef(() => AuthModule),
+    SuscripcionModule,
   ],
   controllers: [UsuarioController],
   providers: [
@@ -29,7 +32,8 @@ import { UsuarioVerificationService } from './services/usuario-verification.serv
     ImageOptimizationService,
     UsuarioProfileImageService,
     UsuarioVerificationService,
+    UsuarioPasswordRecoveryService,
   ],
-  exports: [UsuarioService, UsuarioRepository, UsuarioMapper, UsuarioVerificationService],
+  exports: [UsuarioService, UsuarioRepository, UsuarioMapper, UsuarioVerificationService, UsuarioPasswordRecoveryService],
 })
 export class UsuarioModule { }

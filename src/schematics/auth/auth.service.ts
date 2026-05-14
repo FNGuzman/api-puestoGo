@@ -10,6 +10,9 @@ import { ChangePasswordResponseDto } from './dto/change-password-response.dto';
 import { ErrorHandlerService } from 'src/common/services/error-handler.service';
 import { EmailService } from 'src/common/email/email.service';
 import { UsuarioVerificationService } from '../usuario/services/usuario-verification.service';
+import { UsuarioPasswordRecoveryService } from '../usuario/services/usuario-password-recovery.service';
+import { ForgotPasswordRequestDto } from './dto/forgot-password-request.dto';
+import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 import {
   getAccessTokenSecret,
   getRefreshTokenSecret,
@@ -21,6 +24,7 @@ export class AuthService {
     @Inject(forwardRef(() => UsuarioService))
     private usuarioService: UsuarioService,
     private usuarioVerificationService: UsuarioVerificationService,
+    private usuarioPasswordRecoveryService: UsuarioPasswordRecoveryService,
     private jwtService: JwtService,
     private errorHandler: ErrorHandlerService,
     private emailService: EmailService,
@@ -198,5 +202,25 @@ export class AuthService {
   async logout(userId: number): Promise<{ message: string }> {
     await this.usuarioService.updateUltimoAcceso(userId);
     return { message: 'Sesión cerrada exitosamente' };
+  }
+
+  /**
+   * Respuesta genérica para no filtrar si el email existe.
+   */
+  async forgotPassword(dto: ForgotPasswordRequestDto): Promise<{ message: string }> {
+    const payload = await this.usuarioPasswordRecoveryService.crearCodigoRecuperacion(dto.email);
+    if (payload) {
+      this.emailService.sendPasswordResetEmail(payload.email, payload.codigo).catch((err) => {
+        console.error('[AuthService] Error al enviar email de recuperación de contraseña:', err);
+      });
+    }
+    return {
+      message: 'Si el correo está registrado, recibirás un código para restablecer la contraseña.',
+    };
+  }
+
+  async resetPassword(dto: ResetPasswordRequestDto): Promise<{ message: string }> {
+    await this.usuarioPasswordRecoveryService.restablecerConCodigo(dto.email, dto.codigo, dto.contrasena);
+    return { message: 'Contraseña actualizada correctamente. Ya podés iniciar sesión.' };
   }
 } 

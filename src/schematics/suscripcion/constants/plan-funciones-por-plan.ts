@@ -1,0 +1,19 @@
+import { PLAN_CODIGO } from './plan-codigos';
+import { PLAN_FUNCION_CODIGO } from './plan-funcion-codigo';
+
+/** Funciones incluidas por código de plan (relación sub_05_rel_plan_funcion). */
+export const PLAN_FUNCIONES_POR_PLAN: Record<string, string[]> = {
+  [PLAN_CODIGO.BASICO]: [],
+  [PLAN_CODIGO.PRO]: [
+    PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_PRECIO,
+    PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_STOCK,
+    PLAN_FUNCION_CODIGO.GENERAR_ETIQUETAS,
+    PLAN_FUNCION_CODIGO.BACKUP_NUBE,
+  ],
+  [PLAN_CODIGO.EQUIPO]: [
+    PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_PRECIO,
+    PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_STOCK,
+    PLAN_FUNCION_CODIGO.GENERAR_ETIQUETAS,
+    PLAN_FUNCION_CODIGO.BACKUP_NUBE,
+  ],
+};

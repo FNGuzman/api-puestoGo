@@ -6,6 +6,15 @@ import { Usuario } from '../entities/usuario.entity';
 export class UsuarioProfileImageService {
   constructor(private readonly storage: R2StorageService) {}
 
+  /**
+   * Multer puede devolver un objeto aunque el input file esté vacío (p. ej. size 0 en multipart).
+   */
+  hasFotoUpload(file?: Express.Multer.File): boolean {
+    if (!file) return false;
+    if (typeof file.size === 'number' && file.size > 0) return true;
+    return (file.buffer?.length ?? 0) > 0;
+  }
+
   async uploadFotoPerfil(file: Express.Multer.File): Promise<string> {
     const timestamp = Date.now();
     const nombreArchivoLimpio = file.originalname?.replace(/[^a-zA-Z0-9.-]/g, '_') ?? 'foto-perfil';
@@ -23,11 +32,11 @@ export class UsuarioProfileImageService {
     urlFotoPerfil?: string | null,
     file?: Express.Multer.File,
   ): Promise<string | null> {
-    if (file) {
+    if (this.hasFotoUpload(file)) {
       if (usuario.fotoPerfil) {
         await this.deleteFotoFromUrl(usuario.fotoPerfil);
       }
-      return this.uploadFotoPerfil(file);
+      return this.uploadFotoPerfil(file!);
     }
 
     if (urlFotoPerfil !== undefined) {

@@ -13,6 +13,8 @@ import { ChangePasswordResponseDto } from './dto/change-password-response.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SwaggerSignupRequestDto } from './dto/swagger-usuario-request.dto';
 import { VerifyEmailRequestDto } from './dto/verify-email-request.dto';
+import { ForgotPasswordRequestDto } from './dto/forgot-password-request.dto';
+import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -65,6 +67,50 @@ export class AuthController {
       loginUsuarioRequestDto.contrasena,
     );
     return this.authService.login(usuario);
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({
+    summary: 'Solicitar recuperación de contraseña',
+    description:
+      'Envía un código de 6 dígitos al correo si la cuenta existe. La respuesta es siempre genérica por seguridad.',
+  })
+  @ApiBody({ type: ForgotPasswordRequestDto })
+  @ApiOkResponse({
+    description: 'Solicitud procesada',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Si el correo está registrado, recibirás un código para restablecer la contraseña.',
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Email inválido' })
+  async forgotPassword(@Body() body: ForgotPasswordRequestDto): Promise<{ message: string }> {
+    return this.authService.forgotPassword(body);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({
+    summary: 'Restablecer contraseña con código',
+    description: 'Usa el código recibido por correo (válido 15 minutos) y la nueva contraseña.',
+  })
+  @ApiBody({ type: ResetPasswordRequestDto })
+  @ApiOkResponse({
+    description: 'Contraseña actualizada',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Contraseña actualizada correctamente. Ya podés iniciar sesión.' },
+      },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Código inválido o expirado, o datos inválidos' })
+  async resetPassword(@Body() body: ResetPasswordRequestDto): Promise<{ message: string }> {
+    return this.authService.resetPassword(body);
   }
 
   @Post('refresh')

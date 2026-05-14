@@ -12,14 +12,14 @@ export const DataSourceConfigLocal: DataSourceOptions = {
   port: +(process.env.DB_PORT)!,
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'nest-api-template',
+  database: process.env.DB_NAME || 'puestoGo',
   entities: [
     __dirname + '/../../schematics/**/entities/*.entity{.ts,.js}',
-    __dirname + '/../../notifications/**/entities/*.entity{.ts,.js}',
   ],
   subscribers: [AuditSubscriber],
   logging: false,
-  synchronize: false,
+  /** Solo con DB_SYNCHRONIZE=true (desarrollo). En producción usar migraciones. */
+  synchronize: process.env.DB_SYNCHRONIZE?.trim().toLowerCase() === 'true',
   extra: {
     timezone: process.env.DB_TIMEZONE || '-03:00',
     charset: 'utf8mb4',

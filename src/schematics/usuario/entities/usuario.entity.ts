@@ -26,6 +26,14 @@ export class Usuario extends BaseEntity {
   @Column({ name: 'user01_codigo_verificacion_expira', type: 'varchar', length: 20, nullable: true })
   codigoVerificacionExpiraEn: string | null;
 
+  @AuditExclude()
+  @Column({ name: 'user01_codigo_recuperacion', type: 'varchar', length: 10, nullable: true })
+  codigoRecuperacionContrasena: string | null;
+
+  @AuditExclude()
+  @Column({ name: 'user01_codigo_recuperacion_expira', type: 'varchar', length: 20, nullable: true })
+  codigoRecuperacionExpiraEn: string | null;
+
   @Column({ name: 'user01_activo', type: 'boolean', default: true })
   activo: boolean;
 
