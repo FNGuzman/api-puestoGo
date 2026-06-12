@@ -7,8 +7,9 @@ export type DevicePlatform = 'android' | 'ios' | 'web';
 
 @Entity('noti_01_device_token')
 export class DeviceToken extends BaseEntity {
-
-  @ManyToOne(() => Usuario, (usuario) => usuario.deviceTokens, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Usuario, (usuario) => usuario.deviceTokens, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'rela_usua02' })
   usuario: Usuario;
 
@@ -17,15 +18,30 @@ export class DeviceToken extends BaseEntity {
   fcmToken: string;
 
   /** Plataforma para posibles personalizaciones (android, ios, web). */
-  @Column({ name: 'notif01_platform', type: 'varchar', length: 20, default: 'android' })
+  @Column({
+    name: 'notif01_platform',
+    type: 'varchar',
+    length: 20,
+    default: 'android',
+  })
   platform: DevicePlatform;
 
   /** Identificador opcional del dispositivo (ej. nombre o modelo) para depuración. */
-  @Column({ name: 'notif01_device_id', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'notif01_device_id',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   deviceId: string | null;
 
   /** Nombre del dispositivo para depuración. */
-  @Column({ name: 'notif01_device_name', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'notif01_device_name',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   deviceName: string | null;
 
   static fromId(id: number): DeviceToken {

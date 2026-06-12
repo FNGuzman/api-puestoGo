@@ -1,18 +1,28 @@
-import { IsNumber, IsEnum, IsString, IsOptional, IsObject, IsNotEmpty } from 'class-validator';
+import {
+  IsNumber,
+  IsEnum,
+  IsString,
+  IsOptional,
+  IsObject,
+  IsNotEmpty,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AuditActionEnum } from 'src/common/enums/audit-action-enum';
 
 export class CreateAuditLogDto {
-
-  @ApiProperty({ description: 'ID del usuario que realiza la acción', type: Number, required: true })
+  @ApiProperty({
+    description: 'ID del usuario que realiza la acción',
+    type: Number,
+    required: true,
+  })
   @IsNotEmpty()
   @IsNumber()
   userId: number;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Tipo de acción realizada',
     enum: AuditActionEnum,
-    required: true
+    required: true,
   })
   @IsNotEmpty()
   @IsEnum(AuditActionEnum)
@@ -23,7 +33,11 @@ export class CreateAuditLogDto {
   @IsString()
   entity: string;
 
-  @ApiProperty({ description: 'ID de la entidad específica', type: Number, required: true })
+  @ApiProperty({
+    description: 'ID de la entidad específica',
+    type: Number,
+    required: true,
+  })
   @IsNumber()
   entityId: number;
 

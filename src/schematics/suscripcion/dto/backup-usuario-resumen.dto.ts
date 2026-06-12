@@ -19,6 +19,9 @@ export class BackupUsuarioResumenDto {
   @ApiPropertyOptional()
   checksumSha256: string | null;
 
-  @ApiProperty({ description: 'true si el JSON está guardado en DB (descargable desde la app o el panel).' })
+  @ApiProperty({
+    description:
+      'true si el JSON está guardado en DB (descargable desde la app o el panel).',
+  })
   tienePayloadEnDb: boolean;
 }

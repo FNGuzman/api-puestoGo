@@ -11,7 +11,9 @@ import { ExternalAuthApiService } from './auth-api.service';
       provide: 'AXIOS_INSTANCE',
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const baseURL = configService.get<string>('AUTH_API_URL') || 'https://auth.pushsoftware.com.ar';
+        const baseURL =
+          configService.get<string>('AUTH_API_URL') ||
+          'https://auth.pushsoftware.com.ar';
         return axios.create({
           baseURL,
           timeout: 10000,

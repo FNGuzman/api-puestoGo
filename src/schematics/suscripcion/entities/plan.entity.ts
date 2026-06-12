@@ -14,11 +14,22 @@ export class Plan extends BaseEntity {
   @Column({ name: 'sub02_nombre', type: 'varchar', length: 120 })
   nombre: string;
 
-  @Column({ name: 'sub02_descripcion', type: 'varchar', length: 500, nullable: true })
+  @Column({
+    name: 'sub02_descripcion',
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+  })
   descripcion: string | null;
 
   /** Precio por ciclo de facturación (mensual si `cicloFacturacion` es mensual). */
-  @Column({ name: 'sub02_precio', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'sub02_precio',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   precio: string;
 
   @Column({ name: 'sub02_moneda', type: 'varchar', length: 8, default: 'ARS' })
@@ -28,10 +39,18 @@ export class Plan extends BaseEntity {
   @Column({ name: 'sub02_limite_productos', type: 'int', nullable: true })
   limiteProductos: number | null;
 
-  @Column({ name: 'sub02_ajuste_masivo_precio', type: 'boolean', default: false })
+  @Column({
+    name: 'sub02_ajuste_masivo_precio',
+    type: 'boolean',
+    default: false,
+  })
   permiteAjusteMasivoPrecio: boolean;
 
-  @Column({ name: 'sub02_ajuste_masivo_stock', type: 'boolean', default: false })
+  @Column({
+    name: 'sub02_ajuste_masivo_stock',
+    type: 'boolean',
+    default: false,
+  })
   permiteAjusteMasivoStock: boolean;
 
   /** Días de vigencia del período al asignar plan (ej. trial 30 días). */

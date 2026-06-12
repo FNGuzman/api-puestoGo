@@ -13,7 +13,12 @@ export class SuscripcionPago extends BaseEntity {
   @Column({ name: 'sub03_plan_codigo', type: 'varchar', length: 32 })
   planCodigo: string;
 
-  @Column({ name: 'sub03_plan_nombre', type: 'varchar', length: 120, nullable: true })
+  @Column({
+    name: 'sub03_plan_nombre',
+    type: 'varchar',
+    length: 120,
+    nullable: true,
+  })
   planNombre: string | null;
 
   @Column({ name: 'sub03_ciclo', type: 'varchar', length: 16 })
@@ -25,16 +30,36 @@ export class SuscripcionPago extends BaseEntity {
   @Column({ name: 'sub03_moneda', type: 'varchar', length: 8 })
   moneda: string;
 
-  @Column({ name: 'sub03_estado', type: 'varchar', length: 20, default: PagoSuscripcionEstado.PENDIENTE })
+  @Column({
+    name: 'sub03_estado',
+    type: 'varchar',
+    length: 20,
+    default: PagoSuscripcionEstado.PENDIENTE,
+  })
   estado: PagoSuscripcionEstado;
 
-  @Column({ name: 'sub03_mp_preference_id', type: 'varchar', length: 64, nullable: true })
+  @Column({
+    name: 'sub03_mp_preference_id',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
   mpPreferenceId: string | null;
 
-  @Column({ name: 'sub03_mp_payment_id', type: 'varchar', length: 64, nullable: true })
+  @Column({
+    name: 'sub03_mp_payment_id',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
   mpPaymentId: string | null;
 
-  @Column({ name: 'sub03_external_ref', type: 'varchar', length: 80, unique: true })
+  @Column({
+    name: 'sub03_external_ref',
+    type: 'varchar',
+    length: 80,
+    unique: true,
+  })
   externalRef: string;
 
   @Column({ name: 'sub03_paid_at', type: 'datetime', nullable: true })

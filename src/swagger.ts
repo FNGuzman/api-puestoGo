@@ -1,38 +1,51 @@
 import { INestApplication } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder, SwaggerCustomOptions } from '@nestjs/swagger';
+import {
+  SwaggerModule,
+  DocumentBuilder,
+  SwaggerCustomOptions,
+} from '@nestjs/swagger';
+import { isProductionEnv } from 'src/common/utils/redact-sensitive.util';
 
 export function setupSwagger(app: INestApplication): void {
+  const enabled =
+    !isProductionEnv() ||
+    (process.env.ENABLE_SWAGGER || '').trim().toLowerCase() === 'true';
+
+  if (!enabled) {
+    return;
+  }
+
   const local = {
-    url: 'http://localhost:3000/',
+    url: process.env.APP_BASE_URL || 'http://localhost:3000/',
   };
   const production = {
-    url: '',
+    url: process.env.PUBLIC_API_BASE_URL || '',
   };
 
   const config = new DocumentBuilder()
     .setTitle('Documentación del Sistema Template')
     .setDescription('Sistema de Template')
     .setVersion('1.0')
-
     .addBearerAuth(
       {
         type: 'http',
         scheme: 'bearer',
-        bearerFormat: 'authorization'
+        bearerFormat: 'authorization',
       },
       'authorization',
-    ).build();
+    )
+    .build();
 
   const options: SwaggerCustomOptions = {
     swaggerOptions: {
       docExpansion: 'none',
-      persistAuthorization: true, // Persistir el token de autorización
+      persistAuthorization: true,
       displayRequestDuration: true,
-      tagsSorter: 'alpha', // Ordenar tags alfabéticamente
+      tagsSorter: 'alpha',
     },
   };
 
-  config.servers = [local, production];
+  config.servers = [local, production].filter((server) => server.url);
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document, options);
 }

@@ -37,7 +37,10 @@ export class NotificacionRepository extends Repository<Notificacion> {
   /**
    * Busca una notificación por id asegurando que pertenece al usuario (para PATCH /read).
    */
-  async findOneByIdAndUsuarioId(id: number, usuarioId: number): Promise<Notificacion | null> {
+  async findOneByIdAndUsuarioId(
+    id: number,
+    usuarioId: number,
+  ): Promise<Notificacion | null> {
     return this.findOne({
       where: { id, usuario: { id: usuarioId } },
     });

@@ -31,7 +31,10 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#039;');
 }
 
-export function getPasswordResetEmailHtml(codigo: string, logoUrl?: string | null): string {
+export function getPasswordResetEmailHtml(
+  codigo: string,
+  logoUrl?: string | null,
+): string {
   const logoBlock = logoUrl
     ? `<img src="${escapeHtml(logoUrl)}" alt="Nest API Template" width="112" height="auto" style="display:block;max-width:112px;height:auto;margin:0 auto 16px;border-radius:8px;" />`
     : `<div style="width:52px;height:52px;margin:0 auto 16px;background:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.35);border-radius:50%;text-align:center;line-height:52px;font-size:24px;">&#128274;</div>`;

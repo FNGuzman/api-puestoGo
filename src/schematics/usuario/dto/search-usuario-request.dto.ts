@@ -4,7 +4,11 @@ import { IsNumber, IsOptional, IsString, IsBoolean } from 'class-validator';
 import { BaseSearchDto } from 'src/common/dto/base-search.dto';
 
 export class SearchUsuarioRequestDto extends BaseSearchDto {
-  @ApiProperty({ description: 'ID del usuario a buscar', type: Number, required: false })
+  @ApiProperty({
+    description: 'ID del usuario a buscar',
+    type: Number,
+    required: false,
+  })
   @IsNumber()
   @IsOptional()
   @Type(() => Number)
@@ -15,20 +19,29 @@ export class SearchUsuarioRequestDto extends BaseSearchDto {
   @IsString()
   email?: string;
 
-  @ApiProperty({ description: 'Estado activo para filtrar', type: Boolean, required: false })
+  @ApiProperty({
+    description: 'Estado activo para filtrar',
+    type: Boolean,
+    required: false,
+  })
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   activo?: boolean;
 
-  @ApiProperty({ description: 'Nombre de la persona para filtrar', required: false })
+  @ApiProperty({
+    description: 'Nombre de la persona para filtrar',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   nombrePersona?: string;
-  
-  @ApiProperty({ description: 'Apellido de la persona para filtrar', required: false })
+
+  @ApiProperty({
+    description: 'Apellido de la persona para filtrar',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   apellidoPersona?: string;
-  
 }

@@ -1,5 +1,22 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { FlexibleJwtAuthGuard } from 'src/common/guards/flexible-jwt-auth.guard';
 import { SuscripcionService } from './suscripcion.service';
@@ -26,7 +43,9 @@ export class SuscripcionController {
   @Get('pagos')
   @UseGuards(FlexibleJwtAuthGuard)
   @ApiBearerAuth('authorization')
-  @ApiOperation({ summary: 'Historial de pagos de suscripción del usuario autenticado' })
+  @ApiOperation({
+    summary: 'Historial de pagos de suscripción del usuario autenticado',
+  })
   @ApiOkResponse({ type: [PagoSuscripcionResumenDto] })
   async listPagos(@Req() req: Request): Promise<PagoSuscripcionResumenDto[]> {
     const user = req.user as { id: number };
@@ -46,18 +65,32 @@ export class SuscripcionController {
   @Post('backup/sync')
   @UseGuards(FlexibleJwtAuthGuard)
   @ApiBearerAuth('authorization')
-  @ApiOperation({ summary: 'Sincronizar respaldo: guarda el JSON en base de datos (sin archivo en disco)' })
-  async sincronizarBackup(@Req() req: Request, @Body() body: SincronizarBackupDto) {
+  @ApiOperation({
+    summary:
+      'Sincronizar respaldo: guarda el JSON en base de datos (sin archivo en disco)',
+  })
+  async sincronizarBackup(
+    @Req() req: Request,
+    @Body() body: SincronizarBackupDto,
+  ) {
     const user = req.user as { id: number };
-    return this.suscripcionService.sincronizarBackupDesdeApp(user.id, body.payload);
+    return this.suscripcionService.sincronizarBackupDesdeApp(
+      user.id,
+      body.payload,
+    );
   }
 
   @Get('backup/:id')
   @UseGuards(FlexibleJwtAuthGuard)
   @ApiBearerAuth('authorization')
-  @ApiOperation({ summary: 'Descargar JSON del backup guardado en DB (solo el dueño)' })
+  @ApiOperation({
+    summary: 'Descargar JSON del backup guardado en DB (solo el dueño)',
+  })
   @ApiOkResponse({ type: BackupUsuarioDetalleDto })
-  async obtenerBackup(@Req() req: Request, @Param('id', ParseIntPipe) id: number): Promise<BackupUsuarioDetalleDto> {
+  async obtenerBackup(
+    @Req() req: Request,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<BackupUsuarioDetalleDto> {
     const user = req.user as { id: number };
     return this.suscripcionService.obtenerBackupJsonParaUsuario(user.id, id);
   }
@@ -65,16 +98,32 @@ export class SuscripcionController {
   @Post('checkout')
   @UseGuards(FlexibleJwtAuthGuard)
   @ApiBearerAuth('authorization')
-  @ApiOperation({ summary: 'Iniciar pago (Mercado Pago) o simulación si está habilitada' })
+  @ApiOperation({
+    summary: 'Iniciar pago (Mercado Pago) o simulación si está habilitada',
+  })
   @ApiOkResponse({ type: CheckoutSuscripcionResponseDto })
-  async checkout(@Req() req: Request, @Body() body: CheckoutSuscripcionDto): Promise<CheckoutSuscripcionResponseDto> {
+  async checkout(
+    @Req() req: Request,
+    @Body() body: CheckoutSuscripcionDto,
+  ): Promise<CheckoutSuscripcionResponseDto> {
     const user = req.user as { id: number };
     return this.suscripcionService.crearCheckout(user.id, body);
   }
 
   @Post('webhook')
+  @SkipThrottle()
   @ApiOperation({ summary: 'Webhook Mercado Pago (notificaciones de pago)' })
-  async webhook(@Body() body: Record<string, unknown>): Promise<{ ok: boolean }> {
+  async webhook(
+    @Headers('x-signature') xSignature: string | undefined,
+    @Headers('x-request-id') xRequestId: string | undefined,
+    @Query() query: Record<string, string>,
+    @Body() body: Record<string, unknown>,
+  ): Promise<{ ok: boolean }> {
+    this.suscripcionService.assertValidMercadoPagoWebhook(
+      body ?? {},
+      { xSignature, xRequestId },
+      query,
+    );
     await this.suscripcionService.procesarWebhookMercadoPago(body ?? {});
     return { ok: true };
   }

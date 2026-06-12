@@ -73,8 +73,7 @@ export function toPlainForAudit(target: Function | string, entity: any) {
     typeof target === 'function'
       ? Reflect.getMetadata(AUDIT_EXCLUDE, target)
       : undefined;
-  const excluded: Set<string | symbol> =
-    raw instanceof Set ? raw : new Set();
+  const excluded: Set<string | symbol> = raw instanceof Set ? raw : new Set();
 
   const plain: Record<string, any> = {};
   for (const [k, v] of Object.entries(entity)) {

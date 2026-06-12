@@ -1,5 +1,25 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags, ApiUnauthorizedResponse, ApiBody } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+  ApiBody,
+} from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { RegisterDeviceTokenRequestDto } from './dto/register-device-token.dto';
 import { SearchNotificacionRequestDto } from './dto/search-notificacion-request.dto';
@@ -11,7 +31,7 @@ import { FlexibleJwtAuthGuard } from 'src/common/guards/flexible-jwt-auth.guard'
 @ApiTags('Notificaciones')
 @Controller('notifications')
 export class NotificationsController {
-  constructor(private notificationsService: NotificationsService) { }
+  constructor(private notificationsService: NotificationsService) {}
 
   @Post('device-token')
   @ApiBearerAuth('authorization')
@@ -48,11 +68,12 @@ export class NotificationsController {
   @UseGuards(FlexibleJwtAuthGuard)
   @ApiOperation({
     summary: 'Listar mis notificaciones',
-    description: 'Lista paginada de notificaciones del usuario. Opcional: solo no leídas.',
+    description:
+      'Lista paginada de notificaciones del usuario. Opcional: solo no leídas.',
   })
   @ApiOkResponse({
     type: PageDto<NotificacionDTO>,
-    description: 'Lista paginada de notificaciones del usuario'
+    description: 'Lista paginada de notificaciones del usuario',
   })
   @ApiBadRequestResponse({ description: 'Solicitud incorrecta' })
   @ApiUnauthorizedResponse({ description: 'No autorizado' })
@@ -74,7 +95,10 @@ export class NotificationsController {
       'Solo aplica a notificaciones del usuario. Llamar cuando el usuario abre la notificación o la ve en el historial.',
   })
   @ApiParam({ name: 'id', description: 'ID de la notificación' })
-  @ApiOkResponse({ description: 'Notificación marcada como leída', schema: { properties: { leido: { type: 'boolean', example: true } } } })
+  @ApiOkResponse({
+    description: 'Notificación marcada como leída',
+    schema: { properties: { leido: { type: 'boolean', example: true } } },
+  })
   @ApiBadRequestResponse({ description: 'Solicitud incorrecta' })
   @ApiUnauthorizedResponse({ description: 'No autorizado' })
   async markAsRead(

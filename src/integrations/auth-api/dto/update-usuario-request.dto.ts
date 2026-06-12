@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNumber, IsEnum, IsString, MaxLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNumber,
+  IsEnum,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import { IsOptional } from 'class-validator';
 import { GeneroEnum } from 'src/common/enums/genero-enum';
 
@@ -42,12 +48,20 @@ export class UpdateUsuarioAuthRequestDto {
 
   @ApiProperty({ description: 'Rol de la Persona.', required: false })
   @IsOptional()
-  @IsNumber({}, {
-    message: 'El rol de la Persona deberia ser un numero',
-  })
+  @IsNumber(
+    {},
+    {
+      message: 'El rol de la Persona deberia ser un numero',
+    },
+  )
   rol?: number;
 
-  @ApiProperty({ description: 'Telefono de la persona', type: String, required: false, maxLength: 50 })
+  @ApiProperty({
+    description: 'Telefono de la persona',
+    type: String,
+    required: false,
+    maxLength: 50,
+  })
   @IsOptional()
   @IsString({
     message: 'El telefono de la persona deberia ser una cadena de texto',

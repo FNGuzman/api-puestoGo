@@ -8,7 +8,9 @@ export const PLAN_FUNCION_CODIGO = {
   BACKUP_NUBE: 'BACKUP_NUBE',
 } as const;
 
-export type PlanFuncionCodigo = (typeof PLAN_FUNCION_CODIGO)[keyof typeof PLAN_FUNCION_CODIGO];
+export type PlanFuncionCodigo =
+  (typeof PLAN_FUNCION_CODIGO)[keyof typeof PLAN_FUNCION_CODIGO];
 
 /** Alineado con la app móvil (`MENSAJE_FUNCION_PLAN_PRO`). */
-export const MENSAJE_FUNCION_PLAN_PRO = 'Esta función está disponible en el plan Pro o superior.';
+export const MENSAJE_FUNCION_PLAN_PRO =
+  'Esta función está disponible en el plan Pro o superior.';

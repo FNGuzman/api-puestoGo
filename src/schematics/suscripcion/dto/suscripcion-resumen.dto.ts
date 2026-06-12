@@ -37,14 +37,22 @@ export class SuscripcionResumenDto {
   @Expose()
   renovacionAutomatica: boolean;
 
-  @ApiPropertyOptional({ description: 'Límite de productos del plan; null = ilimitado' })
+  @ApiPropertyOptional({
+    description: 'Límite de productos del plan; null = ilimitado',
+  })
   @Expose()
   limiteProductos: number | null;
 
   @ApiProperty({
     type: [String],
-    description: 'Códigos de funciones incluidas en el plan (ej. AJUSTE_MASIVO_PRECIO)',
-    example: ['AJUSTE_MASIVO_PRECIO', 'AJUSTE_MASIVO_STOCK', 'GENERAR_ETIQUETAS', 'BACKUP_NUBE'],
+    description:
+      'Códigos de funciones incluidas en el plan (ej. AJUSTE_MASIVO_PRECIO)',
+    example: [
+      'AJUSTE_MASIVO_PRECIO',
+      'AJUSTE_MASIVO_STOCK',
+      'GENERAR_ETIQUETAS',
+      'BACKUP_NUBE',
+    ],
   })
   @Expose()
   funcionesHabilitadas: string[];

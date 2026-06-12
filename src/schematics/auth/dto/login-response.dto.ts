@@ -9,7 +9,8 @@ export class LoginResponseDto {
   access_token: string;
 
   @ApiProperty({
-    description: 'Token de refresco para renovar el access token sin volver a iniciar sesión',
+    description:
+      'Token de refresco para renovar el access token sin volver a iniciar sesión',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   })
   refresh_token: string;
@@ -25,4 +26,4 @@ export class LoginResponseDto {
     type: UsuarioDTO,
   })
   usuario: UsuarioDTO;
-} 
+}

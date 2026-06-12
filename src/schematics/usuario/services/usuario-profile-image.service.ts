@@ -17,7 +17,8 @@ export class UsuarioProfileImageService {
 
   async uploadFotoPerfil(file: Express.Multer.File): Promise<string> {
     const timestamp = Date.now();
-    const nombreArchivoLimpio = file.originalname?.replace(/[^a-zA-Z0-9.-]/g, '_') ?? 'foto-perfil';
+    const nombreArchivoLimpio =
+      file.originalname?.replace(/[^a-zA-Z0-9.-]/g, '_') ?? 'foto-perfil';
     const claveArchivo = `fotos-perfiles/${nombreArchivoLimpio}_${timestamp}`;
     const result = await this.storage.subirImagenOptimizada(
       file.buffer,
@@ -61,7 +62,10 @@ export class UsuarioProfileImageService {
       const clave = pathname.startsWith('/') ? pathname.slice(1) : pathname;
       if (clave) await this.storage.eliminarArchivo(clave);
     } catch (e) {
-      console.warn('No se pudo eliminar la imagen anterior:', (e as Error).message);
+      console.warn(
+        'No se pudo eliminar la imagen anterior:',
+        (e as Error).message,
+      );
     }
   }
 }

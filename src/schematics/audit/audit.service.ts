@@ -30,7 +30,10 @@ export class AuditService {
       return data;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.warn(`No se pudieron obtener datos de auth para userId ${userId}:`, message);
+      console.warn(
+        `No se pudieron obtener datos de auth para userId ${userId}:`,
+        message,
+      );
       return null;
     } finally {
       clearTimeout(timeoutId);
@@ -42,7 +45,7 @@ export class AuditService {
 
     // Crear una copia del objeto para no modificar el original
     const cleanedUserData = { ...userData };
-    
+
     // Eliminar el password del objeto usuarios si existe
     if (cleanedUserData.usuarios?.password) {
       const { password, ...usuariosWithoutPassword } = cleanedUserData.usuarios;
@@ -54,7 +57,8 @@ export class AuditService {
 
   async createAuditLog(auditData: CreateAuditLogDto): Promise<AuditoriaDTO> {
     try {
-      const newAuditLog = await this.auditoriaMapper.createDTO2Entity(auditData);
+      const newAuditLog =
+        await this.auditoriaMapper.createDTO2Entity(auditData);
       await this.auditoriaRepository.save(newAuditLog);
       const auditLogSaved = await this.auditoriaMapper.entity2DTO(newAuditLog);
       return auditLogSaved;
@@ -65,11 +69,13 @@ export class AuditService {
     }
   }
 
-  async searchAuditoria(searchDto: SearchAuditLogDto): Promise<PageDto<AuditoriaDTO>> {
+  async searchAuditoria(
+    searchDto: SearchAuditLogDto,
+  ): Promise<PageDto<AuditoriaDTO>> {
     const pageResult = await this.auditoriaRepository.search(searchDto);
-    
+
     const pageDto = await this.auditoriaMapper.page2Dto(searchDto, pageResult);
-    
+
     const enrichedLogs = await Promise.all(
       pageDto.data.map(async (log) => {
         const userData = await this.getAuthData(log.userId);
@@ -79,13 +85,16 @@ export class AuditService {
           ...log,
           userData: cleanedUserData || undefined,
         } as AuditoriaDTO;
-      })
+      }),
     );
 
     // Crear nueva página con datos enriquecidos
-    const enrichedPageDto = new PageDto<AuditoriaDTO>(enrichedLogs, pageDto.metadata.count);
+    const enrichedPageDto = new PageDto<AuditoriaDTO>(
+      enrichedLogs,
+      pageDto.metadata.count,
+    );
     enrichedPageDto.metadata = pageDto.metadata;
-    
+
     return enrichedPageDto;
   }
 }

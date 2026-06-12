@@ -12,7 +12,10 @@ export class ExternalAuthApiService {
   ) {}
 
   private getAuthApiUrl(): string {
-    return this.configService.get('AUTH_API_URL') || 'https://auth.pushsoftware.com.ar';
+    return (
+      this.configService.get('AUTH_API_URL') ||
+      'https://auth.pushsoftware.com.ar'
+    );
   }
 
   public async getUsuarioData(userId: number): Promise<any> {
@@ -150,7 +153,10 @@ export class ExternalAuthApiService {
           },
         },
       );
-      console.log('Usuario actualizado en API Auth (PersonaOut):', personaResponse?.data);
+      console.log(
+        'Usuario actualizado en API Auth (PersonaOut):',
+        personaResponse?.data,
+      );
     }
 
     if (rol !== undefined) {
@@ -172,7 +178,10 @@ export class ExternalAuthApiService {
                 },
               },
             );
-            console.log('Rol actualizado en API Auth (Permiso):', permisoResponse.data);
+            console.log(
+              'Rol actualizado en API Auth (Permiso):',
+              permisoResponse.data,
+            );
           } else {
             console.warn(`No se encontro permiso para el usuario ${userId}`);
           }

@@ -5,11 +5,10 @@ import { AuditExcludeEntity } from '../config/audit.constants';
 
 /** No auditar la propia tabla de auditoría (evita recursión al insertar logs). */
 @AuditExcludeEntity()
-@Entity({ name: 'audit_log'})
+@Entity({ name: 'audit_log' })
 @Index(['entity', 'entityId'])
 @Index(['userId', 'createdAt'])
 export class AuditLog extends BaseEntity {
-
   @Column({
     name: 'user_id',
     type: 'int',

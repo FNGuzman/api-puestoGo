@@ -58,12 +58,16 @@ export class MercadoPagoCheckoutService {
       auto_return: 'approved',
       notification_url: params.notificationUrl,
     };
-    const res = await axios.post<PreferenceResponse>('https://api.mercadopago.com/checkout/preferences', body, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+    const res = await axios.post<PreferenceResponse>(
+      'https://api.mercadopago.com/checkout/preferences',
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       },
-    });
+    );
     const init = res.data.sandbox_init_point || res.data.init_point;
     if (!init) {
       throw new Error('Mercado Pago no devolvió init_point');
@@ -75,12 +79,17 @@ export class MercadoPagoCheckoutService {
     const token = this.getToken();
     if (!token) return null;
     try {
-      const res = await axios.get<MpPayment>(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get<MpPayment>(
+        `https://api.mercadopago.com/v1/payments/${paymentId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       return res.data;
     } catch (e) {
-      this.logger.warn(`No se pudo obtener pago MP ${paymentId}: ${(e as Error).message}`);
+      this.logger.warn(
+        `No se pudo obtener pago MP ${paymentId}: ${(e as Error).message}`,
+      );
       return null;
     }
   }

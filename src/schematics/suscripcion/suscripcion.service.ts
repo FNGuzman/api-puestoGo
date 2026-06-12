@@ -14,7 +14,10 @@ import { Plan } from './entities/plan.entity';
 import { UsuarioSuscripcion } from './entities/usuario-suscripcion.entity';
 import { Usuario } from '../usuario/entities/usuario.entity';
 import { PLAN_CODIGO } from './constants/plan-codigos';
-import { MENSAJE_FUNCION_PLAN_PRO, PLAN_FUNCION_CODIGO } from './constants/plan-funcion-codigo';
+import {
+  MENSAJE_FUNCION_PLAN_PRO,
+  PLAN_FUNCION_CODIGO,
+} from './constants/plan-funcion-codigo';
 import { PLAN_FUNCIONES_POR_PLAN } from './constants/plan-funciones-por-plan';
 import { SuscripcionCiclo } from './enums/suscripcion-ciclo.enum';
 import { SuscripcionEstado } from './enums/suscripcion-estado.enum';
@@ -28,6 +31,12 @@ import { SuscripcionPago } from './entities/suscripcion-pago.entity';
 import { UsuarioBackup } from './entities/usuario-backup.entity';
 import { PagoSuscripcionEstado } from './enums/pago-suscripcion-estado.enum';
 import { MercadoPagoCheckoutService } from './mercadopago-checkout.service';
+import { isProductionEnv } from 'src/common/utils/redact-sensitive.util';
+import {
+  extractMercadoPagoDataId,
+  MercadoPagoWebhookHeaders,
+  verifyMercadoPagoWebhookSignature,
+} from 'src/common/utils/mercadopago-webhook.util';
 
 /** Meses de tarifa mensual facturados en un pago anual (2 meses de regalo). */
 const MESES_FACTURACION_ANUAL = 10;
@@ -62,7 +71,8 @@ export class SuscripcionService implements OnModuleInit {
     const basico = new Plan();
     basico.codigo = PLAN_CODIGO.BASICO;
     basico.nombre = 'Básico';
-    basico.descripcion = 'Por defecto al crear cuenta. Funciones core; sin ajustes masivos.';
+    basico.descripcion =
+      'Por defecto al crear cuenta. Funciones core; sin ajustes masivos.';
     basico.precio = '0.00';
     basico.moneda = 'ARS';
     basico.limiteProductos = 100;
@@ -75,7 +85,8 @@ export class SuscripcionService implements OnModuleInit {
     const pro = new Plan();
     pro.codigo = PLAN_CODIGO.PRO;
     pro.nombre = 'Pro';
-    pro.descripcion = 'Todas las funciones desbloqueadas (ajustes masivos, catálogo amplio).';
+    pro.descripcion =
+      'Todas las funciones desbloqueadas (ajustes masivos, catálogo amplio).';
     pro.precio = '7000.00';
     pro.moneda = 'ARS';
     pro.limiteProductos = null;
@@ -100,7 +111,9 @@ export class SuscripcionService implements OnModuleInit {
     equipo.activo = true;
 
     await this.planRepository.save([basico, pro, equipo]);
-    this.logger.log('Planes de suscripción iniciales creados (BASICO, PRO, EQUIPO).');
+    this.logger.log(
+      'Planes de suscripción iniciales creados (BASICO, PRO, EQUIPO).',
+    );
   }
 
   /**
@@ -113,7 +126,9 @@ export class SuscripcionService implements OnModuleInit {
       if (!esperados?.length) {
         continue;
       }
-      const existing = await this.planFuncionRepository.find({ where: { plan: { id: plan.id } } });
+      const existing = await this.planFuncionRepository.find({
+        where: { plan: { id: plan.id } },
+      });
       const have = new Set(existing.map((e) => e.funcionCodigo));
       const missing = esperados.filter((c) => !have.has(c));
       if (missing.length === 0) {
@@ -127,12 +142,15 @@ export class SuscripcionService implements OnModuleInit {
           return row;
         }),
       );
-      this.logger.log(`Plan ${plan.codigo}: funciones agregadas (${missing.join(', ')}).`);
+      this.logger.log(
+        `Plan ${plan.codigo}: funciones agregadas (${missing.join(', ')}).`,
+      );
     }
   }
 
   private funcionesHabilitadasParaPlan(plan: Plan): string[] {
-    const rel = plan.funcionesPlan?.map((f) => f.funcionCodigo).filter(Boolean) ?? [];
+    const rel =
+      plan.funcionesPlan?.map((f) => f.funcionCodigo).filter(Boolean) ?? [];
     if (rel.length > 0) {
       return [...new Set(rel)].sort();
     }
@@ -141,13 +159,20 @@ export class SuscripcionService implements OnModuleInit {
       return [...new Set(catalogo)].sort();
     }
     return [
-      ...(plan.permiteAjusteMasivoPrecio ? [PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_PRECIO] : []),
-      ...(plan.permiteAjusteMasivoStock ? [PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_STOCK] : []),
+      ...(plan.permiteAjusteMasivoPrecio
+        ? [PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_PRECIO]
+        : []),
+      ...(plan.permiteAjusteMasivoStock
+        ? [PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_STOCK]
+        : []),
     ];
   }
 
   /** Comprueba que la suscripción vigente del usuario incluya el código de función. */
-  private async assertUsuarioTieneFuncion(usuarioId: number, codigo: string): Promise<void> {
+  private async assertUsuarioTieneFuncion(
+    usuarioId: number,
+    codigo: string,
+  ): Promise<void> {
     const sub = await this.findByUsuarioId(usuarioId);
     if (!sub?.plan) {
       throw new ForbiddenException('No hay plan asignado.');
@@ -185,8 +210,12 @@ export class SuscripcionService implements OnModuleInit {
       renovacionAutomatica: row.renovacionAutomatica,
       limiteProductos: p.limiteProductos,
       funcionesHabilitadas: funciones,
-      permiteAjusteMasivoPrecio: funciones.includes(PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_PRECIO),
-      permiteAjusteMasivoStock: funciones.includes(PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_STOCK),
+      permiteAjusteMasivoPrecio: funciones.includes(
+        PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_PRECIO,
+      ),
+      permiteAjusteMasivoStock: funciones.includes(
+        PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_STOCK,
+      ),
       precioPlan: p.precio,
       monedaPlan: p.moneda,
     };
@@ -203,13 +232,17 @@ export class SuscripcionService implements OnModuleInit {
       where: { codigo: PLAN_CODIGO.BASICO, activo: true },
     });
     if (!plan) {
-      this.logger.error('No existe plan BASICO; ejecutá seed o revisá la base.');
+      this.logger.error(
+        'No existe plan BASICO; ejecutá seed o revisá la base.',
+      );
       return;
     }
 
     const now = new Date();
     const validoHasta = new Date(now);
-    validoHasta.setUTCDate(validoHasta.getUTCDate() + plan.periodoEvaluacionDias);
+    validoHasta.setUTCDate(
+      validoHasta.getUTCDate() + plan.periodoEvaluacionDias,
+    );
 
     const graciaHasta = new Date(validoHasta);
     graciaHasta.setUTCDate(graciaHasta.getUTCDate() + plan.diasGraciaOffline);
@@ -235,7 +268,9 @@ export class SuscripcionService implements OnModuleInit {
     });
     return rows.map((p) => {
       const mensual = Number(p.precio);
-      const anual = Number.isFinite(mensual) ? (mensual * MESES_FACTURACION_ANUAL).toFixed(2) : p.precio;
+      const anual = Number.isFinite(mensual)
+        ? (mensual * MESES_FACTURACION_ANUAL).toFixed(2)
+        : p.precio;
       const funciones = this.funcionesHabilitadasParaPlan(p);
       return {
         codigo: p.codigo,
@@ -245,8 +280,12 @@ export class SuscripcionService implements OnModuleInit {
         moneda: p.moneda,
         limiteProductos: p.limiteProductos,
         funcionesHabilitadas: funciones,
-        permiteAjusteMasivoPrecio: funciones.includes(PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_PRECIO),
-        permiteAjusteMasivoStock: funciones.includes(PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_STOCK),
+        permiteAjusteMasivoPrecio: funciones.includes(
+          PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_PRECIO,
+        ),
+        permiteAjusteMasivoStock: funciones.includes(
+          PLAN_FUNCION_CODIGO.AJUSTE_MASIVO_STOCK,
+        ),
         precioAnual: anual,
       };
     });
@@ -268,8 +307,14 @@ export class SuscripcionService implements OnModuleInit {
   /**
    * Extiende vigencia desde hoy o desde el fin del período actual (lo que sea mayor) y actualiza plan.
    */
-  async aplicarPlanTrasPago(usuarioId: number, planCodigo: string, ciclo: SuscripcionCiclo): Promise<void> {
-    const plan = await this.planRepository.findOne({ where: { codigo: planCodigo, activo: true } });
+  async aplicarPlanTrasPago(
+    usuarioId: number,
+    planCodigo: string,
+    ciclo: SuscripcionCiclo,
+  ): Promise<void> {
+    const plan = await this.planRepository.findOne({
+      where: { codigo: planCodigo, activo: true },
+    });
     if (!plan) {
       throw new BadRequestException(`Plan ${planCodigo} no disponible`);
     }
@@ -279,7 +324,9 @@ export class SuscripcionService implements OnModuleInit {
       row = await this.findByUsuarioId(usuarioId);
     }
     if (!row) {
-      throw new BadRequestException('No se pudo crear la suscripción del usuario');
+      throw new BadRequestException(
+        'No se pudo crear la suscripción del usuario',
+      );
     }
 
     const ahora = new Date();
@@ -299,7 +346,9 @@ export class SuscripcionService implements OnModuleInit {
     await this.usuarioSuscripcionRepository.save(row);
   }
 
-  async listPagosUsuario(usuarioId: number): Promise<PagoSuscripcionResumenDto[]> {
+  async listPagosUsuario(
+    usuarioId: number,
+  ): Promise<PagoSuscripcionResumenDto[]> {
     const rows = await this.suscripcionPagoRepository.find({
       where: { usuario: { id: usuarioId } },
       order: { createdAt: 'DESC' },
@@ -319,8 +368,13 @@ export class SuscripcionService implements OnModuleInit {
     }));
   }
 
-  async listBackupsUsuario(usuarioId: number): Promise<BackupUsuarioResumenDto[]> {
-    await this.assertUsuarioTieneFuncion(usuarioId, PLAN_FUNCION_CODIGO.BACKUP_NUBE);
+  async listBackupsUsuario(
+    usuarioId: number,
+  ): Promise<BackupUsuarioResumenDto[]> {
+    await this.assertUsuarioTieneFuncion(
+      usuarioId,
+      PLAN_FUNCION_CODIGO.BACKUP_NUBE,
+    );
     const rows = await this.usuarioBackupRepository.find({
       where: { usuario: { id: usuarioId } },
       order: { createdAt: 'DESC' },
@@ -343,10 +397,18 @@ export class SuscripcionService implements OnModuleInit {
       throw new BadRequestException('El respaldo debe tener v: 1 o v: 2.');
     }
     if (typeof payload.exportedAt !== 'string' || !payload.exportedAt) {
-      throw new BadRequestException('El respaldo debe incluir exportedAt (ISO).');
+      throw new BadRequestException(
+        'El respaldo debe incluir exportedAt (ISO).',
+      );
     }
-    if (!payload.tables || typeof payload.tables !== 'object' || Array.isArray(payload.tables)) {
-      throw new BadRequestException('El respaldo debe incluir tables (objeto).');
+    if (
+      !payload.tables ||
+      typeof payload.tables !== 'object' ||
+      Array.isArray(payload.tables)
+    ) {
+      throw new BadRequestException(
+        'El respaldo debe incluir tables (objeto).',
+      );
     }
   }
 
@@ -357,12 +419,22 @@ export class SuscripcionService implements OnModuleInit {
   async sincronizarBackupDesdeApp(
     usuarioId: number,
     payload: Record<string, unknown>,
-  ): Promise<{ id: number; exportedAt: string; tamanoBytes: string; checksumSha256: string }> {
-    await this.assertUsuarioTieneFuncion(usuarioId, PLAN_FUNCION_CODIGO.BACKUP_NUBE);
+  ): Promise<{
+    id: number;
+    exportedAt: string;
+    tamanoBytes: string;
+    checksumSha256: string;
+  }> {
+    await this.assertUsuarioTieneFuncion(
+      usuarioId,
+      PLAN_FUNCION_CODIGO.BACKUP_NUBE,
+    );
     this.assertBackupPayloadShape(payload);
     const jsonStr = JSON.stringify(payload);
     const tamanoBytes = Buffer.byteLength(jsonStr, 'utf8');
-    const checksumSha256 = createHash('sha256').update(jsonStr, 'utf8').digest('hex');
+    const checksumSha256 = createHash('sha256')
+      .update(jsonStr, 'utf8')
+      .digest('hex');
 
     const safeStamp = String(payload.exportedAt).replace(/[:.]/g, '-');
     const nombreOriginal = `puntoferia-sync-${safeStamp}.json`;
@@ -386,18 +458,26 @@ export class SuscripcionService implements OnModuleInit {
     };
   }
 
-  async obtenerBackupJsonParaUsuario(usuarioId: number, backupId: number): Promise<{
+  async obtenerBackupJsonParaUsuario(
+    usuarioId: number,
+    backupId: number,
+  ): Promise<{
     id: number;
     nombreOriginal: string;
     creadoEn: string;
     payload: Record<string, unknown>;
   }> {
-    await this.assertUsuarioTieneFuncion(usuarioId, PLAN_FUNCION_CODIGO.BACKUP_NUBE);
+    await this.assertUsuarioTieneFuncion(
+      usuarioId,
+      PLAN_FUNCION_CODIGO.BACKUP_NUBE,
+    );
     const b = await this.usuarioBackupRepository.findOne({
       where: { id: backupId, usuario: { id: usuarioId } },
     });
     if (!b?.payloadJson) {
-      throw new NotFoundException('Backup no encontrado o sin JSON en base de datos.');
+      throw new NotFoundException(
+        'Backup no encontrado o sin JSON en base de datos.',
+      );
     }
     return {
       id: b.id,
@@ -407,8 +487,13 @@ export class SuscripcionService implements OnModuleInit {
     };
   }
 
-  async crearCheckout(usuarioId: number, dto: CheckoutSuscripcionDto): Promise<CheckoutSuscripcionResponseDto> {
-    const plan = await this.planRepository.findOne({ where: { codigo: dto.planCodigo, activo: true } });
+  async crearCheckout(
+    usuarioId: number,
+    dto: CheckoutSuscripcionDto,
+  ): Promise<CheckoutSuscripcionResponseDto> {
+    const plan = await this.planRepository.findOne({
+      where: { codigo: dto.planCodigo, activo: true },
+    });
     if (!plan) {
       throw new BadRequestException('Plan no encontrado');
     }
@@ -434,8 +519,10 @@ export class SuscripcionService implements OnModuleInit {
     await this.suscripcionPagoRepository.save(pago);
 
     const mockAllowed =
-      (process.env.ALLOW_SUBSCRIPTION_MOCK_CHECKOUT || '').toLowerCase() === 'true' ||
-      (process.env.ALLOW_SUBSCRIPTION_MOCK_CHECKOUT || '') === '1';
+      !isProductionEnv() &&
+      ((process.env.ALLOW_SUBSCRIPTION_MOCK_CHECKOUT || '').toLowerCase() ===
+        'true' ||
+        (process.env.ALLOW_SUBSCRIPTION_MOCK_CHECKOUT || '') === '1');
 
     if (!this.mercadoPagoCheckout.isConfigured()) {
       if (mockAllowed) {
@@ -447,7 +534,8 @@ export class SuscripcionService implements OnModuleInit {
         return {
           init_point: `${(process.env.LANDING_BASE_URL || 'http://localhost:3001').replace(/\/+$/, '')}/admin?suscripcion=mock_ok`,
           mock: true,
-          mensaje: 'Pago simulado: plan activado (ALLOW_SUBSCRIPTION_MOCK_CHECKOUT).',
+          mensaje:
+            'Pago simulado: plan activado (ALLOW_SUBSCRIPTION_MOCK_CHECKOUT).',
         };
       }
       throw new BadRequestException(
@@ -455,11 +543,14 @@ export class SuscripcionService implements OnModuleInit {
       );
     }
 
-    const landing = (process.env.LANDING_BASE_URL || 'http://localhost:3001').replace(/\/+$/, '');
-    const apiPublic = (process.env.PUBLIC_API_BASE_URL || process.env.APP_BASE_URL || 'http://localhost:3000').replace(
-      /\/+$/,
-      '',
-    );
+    const landing = (
+      process.env.LANDING_BASE_URL || 'http://localhost:3001'
+    ).replace(/\/+$/, '');
+    const apiPublic = (
+      process.env.PUBLIC_API_BASE_URL ||
+      process.env.APP_BASE_URL ||
+      'http://localhost:3000'
+    ).replace(/\/+$/, '');
 
     const pref = await this.mercadoPagoCheckout.createPreference({
       title: `PuestoGo — ${plan.nombre} (${dto.ciclo})`,
@@ -479,14 +570,46 @@ export class SuscripcionService implements OnModuleInit {
   }
 
   extractPaymentIdFromWebhook(body: Record<string, unknown>): string | null {
-    const data = body?.data as Record<string, unknown> | undefined;
-    if (data?.id != null) return String(data.id);
-    if (typeof body?.resource === 'string' && /^\d+$/.test(body.resource)) return body.resource;
-    if (typeof body?.resource === 'number') return String(body.resource);
-    return null;
+    return extractMercadoPagoDataId(body);
   }
 
-  async procesarWebhookMercadoPago(body: Record<string, unknown>): Promise<void> {
+  assertValidMercadoPagoWebhook(
+    body: Record<string, unknown>,
+    headers: MercadoPagoWebhookHeaders,
+    query: Record<string, unknown> = {},
+  ): void {
+    const dataId = extractMercadoPagoDataId(body, query);
+    const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET?.trim();
+
+    if (isProductionEnv()) {
+      if (!secret) {
+        throw new ForbiddenException('Webhook de Mercado Pago no configurado.');
+      }
+      if (
+        !dataId ||
+        !verifyMercadoPagoWebhookSignature(secret, headers, dataId)
+      ) {
+        throw new ForbiddenException(
+          'Firma de webhook de Mercado Pago inválida.',
+        );
+      }
+      return;
+    }
+
+    if (
+      secret &&
+      dataId &&
+      !verifyMercadoPagoWebhookSignature(secret, headers, dataId)
+    ) {
+      throw new ForbiddenException(
+        'Firma de webhook de Mercado Pago inválida.',
+      );
+    }
+  }
+
+  async procesarWebhookMercadoPago(
+    body: Record<string, unknown>,
+  ): Promise<void> {
     const paymentId = this.extractPaymentIdFromWebhook(body);
     if (!paymentId) return;
     if (!this.mercadoPagoCheckout.isConfigured()) return;
@@ -499,7 +622,9 @@ export class SuscripcionService implements OnModuleInit {
       relations: { usuario: true },
     });
     if (!row) {
-      this.logger.warn(`Pago local no encontrado para external_reference=${payment.external_reference}`);
+      this.logger.warn(
+        `Pago local no encontrado para external_reference=${payment.external_reference}`,
+      );
       return;
     }
     if (row.estado === PagoSuscripcionEstado.APROBADO) return;
@@ -513,7 +638,11 @@ export class SuscripcionService implements OnModuleInit {
       return;
     }
 
-    if (payment.status === 'rejected' || payment.status === 'cancelled' || payment.status === 'refunded') {
+    if (
+      payment.status === 'rejected' ||
+      payment.status === 'cancelled' ||
+      payment.status === 'refunded'
+    ) {
       row.estado = PagoSuscripcionEstado.RECHAZADO;
       row.mpPaymentId = String(payment.id);
       await this.suscripcionPagoRepository.save(row);

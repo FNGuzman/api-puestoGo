@@ -7,8 +7,12 @@ import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 
 @Entity('user_01_cab_usuario')
 export class Usuario extends BaseEntity {
-
-  @Column({ name: 'user01_email', type: 'varchar', length: 255, nullable: false })
+  @Column({
+    name: 'user01_email',
+    type: 'varchar',
+    length: 255,
+    nullable: false,
+  })
   email: string;
 
   @AuditExclude()
@@ -19,19 +23,39 @@ export class Usuario extends BaseEntity {
   emailVerificado: boolean;
 
   @AuditExclude()
-  @Column({ name: 'user01_codigo_verificacion', type: 'varchar', length: 10, nullable: true })
+  @Column({
+    name: 'user01_codigo_verificacion',
+    type: 'varchar',
+    length: 10,
+    nullable: true,
+  })
   codigoVerificacionEmail: string | null;
 
   @AuditExclude()
-  @Column({ name: 'user01_codigo_verificacion_expira', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'user01_codigo_verificacion_expira',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   codigoVerificacionExpiraEn: string | null;
 
   @AuditExclude()
-  @Column({ name: 'user01_codigo_recuperacion', type: 'varchar', length: 10, nullable: true })
+  @Column({
+    name: 'user01_codigo_recuperacion',
+    type: 'varchar',
+    length: 10,
+    nullable: true,
+  })
   codigoRecuperacionContrasena: string | null;
 
   @AuditExclude()
-  @Column({ name: 'user01_codigo_recuperacion_expira', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'user01_codigo_recuperacion_expira',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   codigoRecuperacionExpiraEn: string | null;
 
   @Column({ name: 'user01_activo', type: 'boolean', default: true })
@@ -40,10 +64,17 @@ export class Usuario extends BaseEntity {
   @Column({ name: 'user01_ultimo_acceso', type: 'datetime', nullable: true })
   ultimoAcceso?: Date;
 
-  @Column({ name: 'user01_foto_perfil', type: 'varchar', length: 1000, nullable: true })
+  @Column({
+    name: 'user01_foto_perfil',
+    type: 'varchar',
+    length: 1000,
+    nullable: true,
+  })
   fotoPerfil: string | null;
 
-  @OneToOne(() => Persona, (persona) => persona.usuario, { onDelete: 'CASCADE' })
+  @OneToOne(() => Persona, (persona) => persona.usuario, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'rela_user02' })
   persona: Persona;
 

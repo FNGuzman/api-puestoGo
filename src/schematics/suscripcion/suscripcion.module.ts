@@ -10,7 +10,15 @@ import { SuscripcionController } from './suscripcion.controller';
 import { MercadoPagoCheckoutService } from './mercadopago-checkout.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Plan, UsuarioSuscripcion, UsuarioBackup, SuscripcionPago, PlanFuncion])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Plan,
+      UsuarioSuscripcion,
+      UsuarioBackup,
+      SuscripcionPago,
+      PlanFuncion,
+    ]),
+  ],
   controllers: [SuscripcionController],
   providers: [SuscripcionService, MercadoPagoCheckoutService],
   exports: [SuscripcionService],

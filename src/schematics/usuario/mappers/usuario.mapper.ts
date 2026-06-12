@@ -16,7 +16,7 @@ export class UsuarioMapper {
   constructor(
     private personaMapper: PersonaMapper,
     private suscripcionService: SuscripcionService,
-  ) { }
+  ) {}
   async entity2DTO(usuario: Usuario): Promise<UsuarioDTO> {
     const dto = plainToInstance(UsuarioDTO, usuario, {
       excludeExtraneousValues: true,
@@ -43,7 +43,10 @@ export class UsuarioMapper {
     return pageDto;
   }
 
-  async createDTO2Entity(request: CreateUsuarioRequestDto, persona: Persona): Promise<Usuario> {
+  async createDTO2Entity(
+    request: CreateUsuarioRequestDto,
+    persona: Persona,
+  ): Promise<Usuario> {
     const newUsuario: Usuario = new Usuario();
     newUsuario.contrasena = await bcrypt.hash(request.contrasena, 10);
     newUsuario.email = request.email;

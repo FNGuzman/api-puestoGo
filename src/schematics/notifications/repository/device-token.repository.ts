@@ -17,7 +17,10 @@ export class DeviceTokenRepository extends Repository<DeviceToken> {
   }
 
   /** Busca un registro por usuario y token (para evitar duplicados al registrar). */
-  async findOneByUsuarioAndToken(usuarioId: number, fcmToken: string): Promise<DeviceToken | null> {
+  async findOneByUsuarioAndToken(
+    usuarioId: number,
+    fcmToken: string,
+  ): Promise<DeviceToken | null> {
     return this.findOne({
       where: { usuario: { id: usuarioId }, fcmToken },
     });

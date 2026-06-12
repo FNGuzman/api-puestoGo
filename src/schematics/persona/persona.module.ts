@@ -11,4 +11,4 @@ import { PersonaService } from './persona.service';
   providers: [PersonaService, PersonaRepository, PersonaMapper],
   exports: [PersonaService, PersonaRepository, PersonaMapper],
 })
-export class PersonaModule { }
+export class PersonaModule {}

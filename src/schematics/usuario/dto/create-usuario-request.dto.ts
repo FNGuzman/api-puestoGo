@@ -3,15 +3,25 @@ import { IsNotEmpty, IsString, MinLength, IsEmail } from 'class-validator';
 import { CreatePersonaRequestDto } from 'src/schematics/persona/dto/create-persona-request.dto';
 
 export class CreateUsuarioRequestDto extends CreatePersonaRequestDto {
-  @ApiProperty({ description: 'Contraseña del usuario', type: String, nullable: false, example: 'MiContraseña123', minLength: 6 })
+  @ApiProperty({
+    description: 'Contraseña del usuario',
+    type: String,
+    nullable: false,
+    example: 'MiContraseña123',
+    minLength: 6,
+  })
   @IsNotEmpty()
   @IsString()
   @MinLength(6)
   contrasena: string;
 
-  @ApiProperty({ description: 'Email del usuario', type: String, nullable: false, example: 'usuario@gmail.com' })
+  @ApiProperty({
+    description: 'Email del usuario',
+    type: String,
+    nullable: false,
+    example: 'usuario@gmail.com',
+  })
   @IsNotEmpty()
   @IsEmail()
   email: string;
-
 }

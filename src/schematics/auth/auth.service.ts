@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsuarioService } from '../usuario/usuario.service';
 import { UsuarioDTO } from '../usuario/dto/usuario.dto';
@@ -55,7 +60,10 @@ export class AuthService {
   }
 
   /** Genera access token (corto) y refresh token (largo) para el usuario. */
-  private generateTokenPair(usuario: UsuarioDTO): { access_token: string; refresh_token: string } {
+  private generateTokenPair(usuario: UsuarioDTO): {
+    access_token: string;
+    refresh_token: string;
+  } {
     const payload = this.buildPayload(usuario);
     const access_token = this.jwtService.sign(payload, {
       secret: this.getAccessTokenSecret(),
@@ -86,9 +94,12 @@ export class AuthService {
   }
 
   /** Intercambia un refresh token válido por un nuevo par de tokens (y datos de usuario). */
-  async refreshTokens(
-    refreshToken: string,
-  ): Promise<{ access_token: string; refresh_token: string; expires_in: string; usuario: UsuarioDTO }> {
+  async refreshTokens(refreshToken: string): Promise<{
+    access_token: string;
+    refresh_token: string;
+    expires_in: string;
+    usuario: UsuarioDTO;
+  }> {
     if (!refreshToken?.trim()) {
       throw new UnauthorizedException({
         code: ERRORS.VALIDATION.INVALID_INPUT.CODE,
@@ -98,8 +109,11 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret: this.getRefreshTokenSecret(),
-      }) as { sub: number };
-      const userId = typeof payload.sub === 'string' ? parseInt(payload.sub, 10) : payload.sub;
+      });
+      const userId =
+        typeof payload.sub === 'string'
+          ? parseInt(payload.sub, 10)
+          : payload.sub;
       if (Number.isNaN(userId)) {
         throw new UnauthorizedException('Refresh token inválido');
       }
@@ -123,13 +137,25 @@ export class AuthService {
     }
   }
 
-  async signup(signupDto: SignupRequestDto, file?: Express.Multer.File): Promise<SignupResponseDto> {
+  async signup(
+    signupDto: SignupRequestDto,
+    file?: Express.Multer.File,
+  ): Promise<SignupResponseDto> {
     const nuevoUsuario = await this.usuarioService.create(signupDto, file);
     await this.usuarioService.updateUltimoAcceso(nuevoUsuario.id);
-    const usuarioActualizado = await this.usuarioService.findOne(nuevoUsuario.id);
-    const { access_token, refresh_token } = this.generateTokenPair(usuarioActualizado);
-    this.sendVerificationEmailAfterSignup(nuevoUsuario.id, usuarioActualizado.email).catch((err) => {
-      console.error('[AuthService] Error al enviar email de verificación tras signup:', err);
+    const usuarioActualizado = await this.usuarioService.findOne(
+      nuevoUsuario.id,
+    );
+    const { access_token, refresh_token } =
+      this.generateTokenPair(usuarioActualizado);
+    this.sendVerificationEmailAfterSignup(
+      nuevoUsuario.id,
+      usuarioActualizado.email,
+    ).catch((err) => {
+      console.error(
+        '[AuthService] Error al enviar email de verificación tras signup:',
+        err,
+      );
     });
     return {
       access_token,
@@ -140,15 +166,28 @@ export class AuthService {
     };
   }
 
-  private async sendVerificationEmailAfterSignup(usuarioId: number, email: string): Promise<void> {
+  private async sendVerificationEmailAfterSignup(
+    usuarioId: number,
+    email: string,
+  ): Promise<void> {
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
     const expiraEn = new Date(Date.now() + 15 * 60 * 1000);
-    await this.usuarioVerificationService.setVerificationCode(usuarioId, codigo, expiraEn);
+    await this.usuarioVerificationService.setVerificationCode(
+      usuarioId,
+      codigo,
+      expiraEn,
+    );
     await this.emailService.sendVerificationEmail(email, codigo);
   }
 
-  async verifyEmail(userId: number, codigo: string): Promise<{ message: string; usuario: UsuarioDTO }> {
-    const usuario = await this.usuarioVerificationService.verifyCode(userId, codigo);
+  async verifyEmail(
+    userId: number,
+    codigo: string,
+  ): Promise<{ message: string; usuario: UsuarioDTO }> {
+    const usuario = await this.usuarioVerificationService.verifyCode(
+      userId,
+      codigo,
+    );
     return {
       message: 'Correo verificado correctamente',
       usuario,
@@ -156,7 +195,8 @@ export class AuthService {
   }
 
   async resendVerificationEmail(userId: number): Promise<{ message: string }> {
-    const { email, codigo } = await this.usuarioVerificationService.resendVerificationCode(userId);
+    const { email, codigo } =
+      await this.usuarioVerificationService.resendVerificationCode(userId);
     await this.emailService.sendVerificationEmail(email, codigo);
     return { message: 'Código de verificación reenviado a tu correo' };
   }
@@ -169,7 +209,9 @@ export class AuthService {
     changePasswordDto: ChangePasswordRequestDto,
     userId: number,
   ): Promise<ChangePasswordResponseDto> {
-    if (changePasswordDto.contrasena !== changePasswordDto.confirmarContrasena) {
+    if (
+      changePasswordDto.contrasena !== changePasswordDto.confirmarContrasena
+    ) {
       this.errorHandler.throwBadRequest(
         ERRORS.VALIDATION.INVALID_INPUT,
         'La contraseña y su confirmación deben ser iguales',
@@ -207,20 +249,39 @@ export class AuthService {
   /**
    * Respuesta genérica para no filtrar si el email existe.
    */
-  async forgotPassword(dto: ForgotPasswordRequestDto): Promise<{ message: string }> {
-    const payload = await this.usuarioPasswordRecoveryService.crearCodigoRecuperacion(dto.email);
+  async forgotPassword(
+    dto: ForgotPasswordRequestDto,
+  ): Promise<{ message: string }> {
+    const payload =
+      await this.usuarioPasswordRecoveryService.crearCodigoRecuperacion(
+        dto.email,
+      );
     if (payload) {
-      this.emailService.sendPasswordResetEmail(payload.email, payload.codigo).catch((err) => {
-        console.error('[AuthService] Error al enviar email de recuperación de contraseña:', err);
-      });
+      this.emailService
+        .sendPasswordResetEmail(payload.email, payload.codigo)
+        .catch((err) => {
+          console.error(
+            '[AuthService] Error al enviar email de recuperación de contraseña:',
+            err,
+          );
+        });
     }
     return {
-      message: 'Si el correo está registrado, recibirás un código para restablecer la contraseña.',
+      message:
+        'Si el correo está registrado, recibirás un código para restablecer la contraseña.',
     };
   }
 
-  async resetPassword(dto: ResetPasswordRequestDto): Promise<{ message: string }> {
-    await this.usuarioPasswordRecoveryService.restablecerConCodigo(dto.email, dto.codigo, dto.contrasena);
-    return { message: 'Contraseña actualizada correctamente. Ya podés iniciar sesión.' };
+  async resetPassword(
+    dto: ResetPasswordRequestDto,
+  ): Promise<{ message: string }> {
+    await this.usuarioPasswordRecoveryService.restablecerConCodigo(
+      dto.email,
+      dto.codigo,
+      dto.contrasena,
+    );
+    return {
+      message: 'Contraseña actualizada correctamente. Ya podés iniciar sesión.',
+    };
   }
-} 
+}

@@ -3,7 +3,10 @@ import { DataSource, Repository, SelectQueryBuilder } from 'typeorm';
 import { Usuario } from '../entities/usuario.entity';
 import { SearchUsuarioRequestDto } from '../dto/search-usuario-request.dto';
 import { PageDto } from 'src/common/dto/page.dto';
-import { applySearchQueryOptions, applyTextSearch } from 'src/common/utils/search-query.util';
+import {
+  applySearchQueryOptions,
+  applyTextSearch,
+} from 'src/common/utils/search-query.util';
 
 @Injectable()
 export class UsuarioRepository extends Repository<Usuario> {
@@ -14,24 +17,22 @@ export class UsuarioRepository extends Repository<Usuario> {
   async search(request: SearchUsuarioRequestDto): Promise<PageDto<Usuario>> {
     const queryBuilder: SelectQueryBuilder<Usuario> = this.createQueryBuilder(
       'usuario',
-    )
-      .leftJoinAndSelect('usuario.persona', 'persona');
+    ).leftJoinAndSelect('usuario.persona', 'persona');
 
     if (request.id) {
       queryBuilder.andWhere('usuario.id = :id', { id: request.id });
     }
 
     if (request.email) {
-      queryBuilder.andWhere(
-        'LOWER(usuario.email) LIKE LOWER(:email)',
-        {
-          email: `%${request.email}%`,
-        },
-      );
+      queryBuilder.andWhere('LOWER(usuario.email) LIKE LOWER(:email)', {
+        email: `%${request.email}%`,
+      });
     }
 
     if (request.activo !== undefined) {
-      queryBuilder.andWhere('usuario.activo = :activo', { activo: request.activo });
+      queryBuilder.andWhere('usuario.activo = :activo', {
+        activo: request.activo,
+      });
     }
 
     if (request.nombrePersona) {

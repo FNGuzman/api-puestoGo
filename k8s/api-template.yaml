@@ -24,6 +24,10 @@ data:
   DB_NAME: "nest-api-template"
   NODE_ENV: "production"
   PORT: "3000"
+  CORS_ORIGIN: "https://example.com"
+  PUBLIC_API_BASE_URL: "https://api.example.com"
+  LANDING_BASE_URL: "https://example.com"
+  DB_MIGRATIONS_RUN: "true"
   CLOUDFLARE_ACCOUNT_ID: ""
   R2_BUCKET_NAME: ""
   R2_DEVELOPMENT_URL: ""
@@ -43,6 +47,8 @@ stringData:
   JWT_SECRET: "CHANGE_ME_MIN_16_CHARS"
   ACCESS_TOKEN_SECRET: "CHANGE_ME_MIN_16_CHARS"
   ACCESS_TOKEN_REFRESH_SECRET: "CHANGE_ME_MIN_16_CHARS"
+  MERCADOPAGO_ACCESS_TOKEN: "CHANGE_ME"
+  MERCADOPAGO_WEBHOOK_SECRET: "CHANGE_ME"
   R2_ACCESS_KEY_ID: ""
   R2_SECRET_ACCESS_KEY: ""
 ---
@@ -76,6 +82,18 @@ spec:
                 name: api-template-config
             - secretRef:
                 name: api-template-secret
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
           resources:
             requests:
               memory: "128Mi"

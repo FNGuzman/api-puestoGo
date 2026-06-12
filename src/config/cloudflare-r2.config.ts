@@ -11,9 +11,7 @@ export const R2_CONFIG = {
   accessKeyId: process.env.R2_ACCESS_KEY_ID?.trim(),
   secretAccessKey: process.env.R2_SECRET_ACCESS_KEY?.trim(),
   bucketName: process.env.R2_BUCKET_NAME?.trim() || 'sacop',
-  endpoint: accountId
-    ? `https://${accountId}.r2.cloudflarestorage.com`
-    : '',
+  endpoint: accountId ? `https://${accountId}.r2.cloudflarestorage.com` : '',
   region: 'auto', // Cloudflare R2 usa 'auto',
 
   ambiente: process.env.NODE_ENV || 'development', // Ambiente de la aplicación

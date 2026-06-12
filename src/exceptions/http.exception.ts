@@ -1,40 +1,69 @@
 import {
-  HttpException,
-  Logger,
   ExceptionFilter,
-  ArgumentsHost,
   Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import {
+  isProductionEnv,
+  redactHeaders,
+  redactSensitiveValue,
+} from 'src/common/utils/redact-sensitive.util';
 
-@Catch(HttpException)
+@Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  logger = new Logger();
-  constructor() {}
+  private readonly logger = new Logger('HttpExceptionFilter');
 
-  catch(exception: HttpException, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost) {
     const context = host.switchToHttp();
     const response = context.getResponse<Response>();
     const request = context.getRequest<Request>();
-    const status = exception.getStatus();
 
-    this.logger.log(
-      `👎 HTTP EXCEPTION - Detalle de Error:\n` +
-        `Method: ${request.method} .\n` +
-        `URL: ${request.url} .\n` +
-        `Status: ${status} .\n` +
-        `Error Message: ${exception.message} .\n` +
-        `Stack Trace: ${exception.stack} .\n`,
-    );
+    const status =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    this.logger.log(
-      `Request Details:\n` +
-        `Headers: ${JSON.stringify(request.headers, null, 2)} .\n` +
-        `Params: ${JSON.stringify(request.params, null, 2)} .\n` +
-        `Body: ${JSON.stringify(request.body, null, 2)} .\n`,
-    );
+    const message =
+      exception instanceof HttpException
+        ? exception.message
+        : exception instanceof Error
+          ? exception.message
+          : 'Error interno del servidor';
 
-    const errorDetails = exception.getResponse();
+    const errorDetails =
+      exception instanceof HttpException
+        ? exception.getResponse()
+        : {
+            message: isProductionEnv() ? 'Error interno del servidor' : message,
+          };
+
+    if (status >= 500) {
+      this.logger.error(
+        `${request.method} ${request.url} -> ${status}: ${message}`,
+        isProductionEnv()
+          ? undefined
+          : exception instanceof Error
+            ? exception.stack
+            : undefined,
+      );
+    } else {
+      this.logger.warn(
+        `${request.method} ${request.url} -> ${status}: ${message}`,
+      );
+    }
+
+    if (!isProductionEnv()) {
+      this.logger.debug(
+        `Request debug: headers=${JSON.stringify(redactHeaders(request.headers as Record<string, unknown>))} ` +
+          `params=${JSON.stringify(request.params)} ` +
+          `body=${JSON.stringify(redactSensitiveValue(request.body))}`,
+      );
+    }
+
     response.status(status).json({ error: true, errorDetails });
   }
 }

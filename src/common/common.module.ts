@@ -11,4 +11,4 @@ import { GetEntityService } from './services/get-entity.service';
   providers: [ErrorHandlerService, GetEntityService],
   exports: [ErrorHandlerService, GetEntityService],
 })
-export class CommonModule { }
+export class CommonModule {}

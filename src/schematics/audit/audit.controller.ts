@@ -1,10 +1,11 @@
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import {
-  Controller,
-  Get,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger';
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiBadRequestResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
 import { AuditService } from './audit.service';
 import { SearchAuditLogDto } from './dto/search-audit-log.dto';
 import { AuditoriaDTO } from './dto/auditoria.dto';
@@ -17,12 +18,12 @@ import { AdminAuthGuard } from 'src/common/guards/admin-auth.guard';
 @ApiBearerAuth('authorization')
 @UseGuards(AdminAuthGuard)
 export class AuditController {
-  constructor(private readonly auditService: AuditService) { }
+  constructor(private readonly auditService: AuditService) {}
 
   @Get()
-  @ApiOperation({ 
-    summary: 'Buscar logs de auditoría con filtros', 
-    description: 'Busca logs de auditoría con filtros opcionales'
+  @ApiOperation({
+    summary: 'Buscar logs de auditoría con filtros',
+    description: 'Busca logs de auditoría con filtros opcionales',
   })
   @ApiOkResponse({
     type: () => PageDto<AuditoriaDTO>,
@@ -30,8 +31,8 @@ export class AuditController {
   })
   @ApiBadRequestResponse({ description: 'Solicitud incorrecta.' })
   async searchAuditoria(
-    @Query() searchDto: SearchAuditLogDto)
-    : Promise<PageDto<AuditoriaDTO>> {
+    @Query() searchDto: SearchAuditLogDto,
+  ): Promise<PageDto<AuditoriaDTO>> {
     const request = plainToInstance(SearchAuditLogDto, searchDto);
     return this.auditService.searchAuditoria(request);
   }

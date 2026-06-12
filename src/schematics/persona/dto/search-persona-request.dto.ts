@@ -4,7 +4,11 @@ import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { BaseSearchDto } from 'src/common/dto/base-search.dto';
 
 export class SearchPersonaRequestDto extends BaseSearchDto {
-  @ApiProperty({ description: 'ID de la persona a buscar', type: Number, required: false })
+  @ApiProperty({
+    description: 'ID de la persona a buscar',
+    type: Number,
+    required: false,
+  })
   @IsNumber()
   @IsOptional()
   @Type(() => Number)

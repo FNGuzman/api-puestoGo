@@ -1,4 +1,3 @@
-
 import {
   EntitySubscriberInterface,
   EventSubscriber,
@@ -19,19 +18,18 @@ import { AuditLog } from '../entities/audit-log.entity';
 export class AuditSubscriber implements EntitySubscriberInterface {
   // —— INSERT ——
   async afterInsert(e: InsertEvent<any>) {
-    
     // Evitar múltiples ejecuciones para la misma entidad
-    if (e.entity && (e.entity as any)._auditProcessed) {
+    if (e.entity && e.entity._auditProcessed) {
       return;
     }
-    
+
     if (this.shouldAudit(e.metadata.target)) {
       try {
         await this.writeLog(e, AuditActionEnum.CREATE, undefined, e.entity);
-        
+
         // Marcar como procesado para evitar duplicados
         if (e.entity) {
-          (e.entity as any)._auditProcessed = true;
+          e.entity._auditProcessed = true;
         }
       } catch (error) {
         console.error('Error en audit afterInsert:', error);
@@ -44,7 +42,12 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   async beforeUpdate(e: UpdateEvent<any>) {
     if (this.shouldAudit(e.metadata.target)) {
       try {
-        await this.writeLog(e, AuditActionEnum.UPDATE, e.databaseEntity, e.entity);
+        await this.writeLog(
+          e,
+          AuditActionEnum.UPDATE,
+          e.databaseEntity,
+          e.entity,
+        );
       } catch (error) {
         console.error('Error en audit beforeUpdate:', error);
         // No lanzar el error para no interrumpir la operación principal
@@ -56,7 +59,12 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   async beforeRemove(e: RemoveEvent<any>) {
     if (this.shouldAudit(e.metadata.target)) {
       try {
-        await this.writeLog(e, AuditActionEnum.DELETE, e.databaseEntity, undefined);
+        await this.writeLog(
+          e,
+          AuditActionEnum.DELETE,
+          e.databaseEntity,
+          undefined,
+        );
       } catch (error) {
         console.error('Error en audit beforeRemove:', error);
         // No lanzar el error para no interrumpir la operación principal
@@ -68,7 +76,12 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   async beforeSoftRemove(e: SoftRemoveEvent<any>) {
     if (this.shouldAudit(e.metadata.target)) {
       try {
-        await this.writeLog(e, AuditActionEnum.SOFT_DELETE, e.databaseEntity, undefined);
+        await this.writeLog(
+          e,
+          AuditActionEnum.SOFT_DELETE,
+          e.databaseEntity,
+          undefined,
+        );
       } catch (error) {
         console.error('Error en audit beforeSoftRemove:', error);
         // No lanzar el error para no interrumpir la operación principal
@@ -80,7 +93,12 @@ export class AuditSubscriber implements EntitySubscriberInterface {
   async beforeRecover(e: RecoverEvent<any>) {
     if (this.shouldAudit(e.metadata.target)) {
       try {
-        await this.writeLog(e, AuditActionEnum.RESTORE, undefined, e.databaseEntity);
+        await this.writeLog(
+          e,
+          AuditActionEnum.RESTORE,
+          undefined,
+          e.databaseEntity,
+        );
       } catch (error) {
         console.error('Error en audit beforeRecover:', error);
         // No lanzar el error para no interrumpir la operación principal
@@ -107,7 +125,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
     try {
       // Intentar obtener el token del contexto de la request
       const ctx = getRequestContext();
-      
+
       if (ctx?.userId != null) {
         return ctx.userId;
       }
@@ -140,7 +158,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
     // intenta obtener el id primario
     const idCols = meta.primaryColumns;
     let entityId: number = 0;
-    
+
     // Para INSERT, usar e.entity que ya tiene el ID generado
     // Para otros eventos, usar la lógica existente
     let candidate;
@@ -149,7 +167,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
     } else {
       candidate = (e as any).entity ?? (e as any).databaseEntity ?? undefined;
     }
-    
+
     if (candidate && idCols.length > 0) {
       const vals = idCols
         .map((c) => candidate[c.propertyName])
@@ -174,7 +192,9 @@ export class AuditSubscriber implements EntitySubscriberInterface {
     const userIdFromContext = this.getUserIdFromToken();
     /** Si AsyncLocalStorage perdió el contexto (p. ej. dentro del ciclo de TypeORM), usar el id de la fila Usuario auditada. */
     const userIdFromEntity =
-      entityName === 'Usuario' && candidate && typeof (candidate as { id?: unknown }).id === 'number'
+      entityName === 'Usuario' &&
+      candidate &&
+      typeof (candidate as { id?: unknown }).id === 'number'
         ? Number((candidate as { id: number }).id)
         : null;
 

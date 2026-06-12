@@ -18,15 +18,18 @@ export class UserDataDto {
   @Expose()
   genero: string;
 
-  @ApiProperty({ 
-    description: 'Datos del usuario en el sistema', 
+  @ApiProperty({
+    description: 'Datos del usuario en el sistema',
     type: 'object',
     properties: {
       id: { type: 'number', description: 'ID del usuario' },
       nombre: { type: 'string', description: 'Nombre de usuario' },
       email: { type: 'string', description: 'Email del usuario' },
-      password: { type: 'string', description: 'Password del usuario (opcional)' }
-    }
+      password: {
+        type: 'string',
+        description: 'Password del usuario (opcional)',
+      },
+    },
   })
   @Expose()
   usuarios: {

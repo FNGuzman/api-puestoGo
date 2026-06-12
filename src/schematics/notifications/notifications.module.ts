@@ -10,12 +10,14 @@ import { NotificationsController } from './notifications.controller';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([DeviceToken, Notificacion]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([DeviceToken, Notificacion]), AuthModule],
   controllers: [NotificationsController],
-  providers: [FirebaseService, DeviceTokenRepository, NotificacionRepository, NotificationsService],
+  providers: [
+    FirebaseService,
+    DeviceTokenRepository,
+    NotificacionRepository,
+    NotificationsService,
+  ],
   exports: [NotificationsService],
 })
 export class NotificationsModule {}

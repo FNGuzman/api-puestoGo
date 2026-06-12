@@ -74,12 +74,16 @@ export class BaseSearchDto {
   }
 
   getOrderBy(defaultField: string = BaseSearchDto.DEFAULT_ORDER_BY): string {
-    const raw = (this.orderBy || this.sortBy || defaultField || '').toString().trim();
+    const raw = (this.orderBy || this.sortBy || defaultField || '')
+      .toString()
+      .trim();
     return raw || defaultField;
   }
 
   getOrderDirection(): 'ASC' | 'DESC' {
-    const direction = (this.orderDirection || BaseSearchDto.DEFAULT_ORDER_DIRECTION)
+    const direction = (
+      this.orderDirection || BaseSearchDto.DEFAULT_ORDER_DIRECTION
+    )
       .toString()
       .toUpperCase();
     return direction === 'ASC' ? 'ASC' : 'DESC';

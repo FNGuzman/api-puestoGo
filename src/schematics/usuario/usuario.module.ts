@@ -34,6 +34,12 @@ import { SuscripcionModule } from '../suscripcion/suscripcion.module';
     UsuarioVerificationService,
     UsuarioPasswordRecoveryService,
   ],
-  exports: [UsuarioService, UsuarioRepository, UsuarioMapper, UsuarioVerificationService, UsuarioPasswordRecoveryService],
+  exports: [
+    UsuarioService,
+    UsuarioRepository,
+    UsuarioMapper,
+    UsuarioVerificationService,
+    UsuarioPasswordRecoveryService,
+  ],
 })
-export class UsuarioModule { }
+export class UsuarioModule {}

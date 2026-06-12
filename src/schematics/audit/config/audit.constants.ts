@@ -14,7 +14,8 @@ export const AUDIT_EXCLUDE = Symbol('AUDIT_EXCLUDE');
 export function AuditExclude(): PropertyDecorator {
   return (target: any, key: string | symbol) => {
     const ctor = target.constructor;
-    const existing: Set<string | symbol> = Reflect.getMetadata(AUDIT_EXCLUDE, ctor) ?? new Set();
+    const existing: Set<string | symbol> =
+      Reflect.getMetadata(AUDIT_EXCLUDE, ctor) ?? new Set();
     existing.add(key);
     Reflect.defineMetadata(AUDIT_EXCLUDE, existing, ctor);
   };

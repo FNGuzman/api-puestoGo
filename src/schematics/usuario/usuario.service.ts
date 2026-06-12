@@ -26,8 +26,9 @@ type ActorContext = { id?: number; rolId?: number };
 
 @Injectable()
 export class UsuarioService {
-  
-  private readonly USUARIO_RELATIONS: FindOptionsRelations<Usuario> = { persona: true };
+  private readonly USUARIO_RELATIONS: FindOptionsRelations<Usuario> = {
+    persona: true,
+  };
 
   constructor(
     private usuarioMapper: UsuarioMapper,
@@ -40,23 +41,38 @@ export class UsuarioService {
     private suscripcionService: SuscripcionService,
   ) {}
 
-  async find(criteria: { where: Record<string, unknown>; relations?: FindOptionsRelations<Usuario> }): Promise<Usuario> {
+  async find(criteria: {
+    where: Record<string, unknown>;
+    relations?: FindOptionsRelations<Usuario>;
+  }): Promise<Usuario> {
     const usuario = await this.usuarioRepository.findOne({
       where: criteria.where,
       relations: criteria.relations ?? this.USUARIO_RELATIONS,
     });
     if (!usuario) {
-      this.errorHandler.throwNotFound(ERRORS.DATABASE.RECORD_NOT_FOUND, criteria.where);
+      this.errorHandler.throwNotFound(
+        ERRORS.DATABASE.RECORD_NOT_FOUND,
+        criteria.where,
+      );
     }
     return usuario;
   }
 
   async findByEmail(email: string): Promise<Usuario> {
-    return this.getEntity.findOneByOrFail(Usuario, { email }, this.USUARIO_RELATIONS);
+    return this.getEntity.findOneByOrFail(
+      Usuario,
+      { email },
+      this.USUARIO_RELATIONS,
+    );
   }
 
-  async findOne(id: number): Promise<UsuarioDTO> {
-    const usuario = await this.getEntity.findById(Usuario, id, this.USUARIO_RELATIONS);
+  async findOne(id: number, actor: ActorContext = {}): Promise<UsuarioDTO> {
+    this.assertCanAccessUser(id, actor);
+    const usuario = await this.getEntity.findById(
+      Usuario,
+      id,
+      this.USUARIO_RELATIONS,
+    );
     return this.usuarioMapper.entity2DTO(usuario);
   }
 
@@ -65,7 +81,10 @@ export class UsuarioService {
     return this.usuarioMapper.page2Dto(request, usuarioPage);
   }
 
-  async create(request: CreateUsuarioRequestDto, file?: Express.Multer.File): Promise<UsuarioDTO> {
+  async create(
+    request: CreateUsuarioRequestDto,
+    file?: Express.Multer.File,
+  ): Promise<UsuarioDTO> {
     try {
       await this.validateUniqueEmail(request.email);
 
@@ -80,13 +99,20 @@ export class UsuarioService {
       });
       const personaSaved = await this.personaRepository.save(newPersona);
 
-      const newUsuario = await this.usuarioMapper.createDTO2Entity(request, personaSaved);
+      const newUsuario = await this.usuarioMapper.createDTO2Entity(
+        request,
+        personaSaved,
+      );
       newUsuario.fotoPerfil = urlFotoPerfil;
       const usuarioSaved = await this.usuarioRepository.save(newUsuario);
 
       await this.suscripcionService.crearSuscripcionPorDefecto(usuarioSaved.id);
 
-      const searchUsuario = await this.getEntity.findById(Usuario, usuarioSaved.id, this.USUARIO_RELATIONS);
+      const searchUsuario = await this.getEntity.findById(
+        Usuario,
+        usuarioSaved.id,
+        this.USUARIO_RELATIONS,
+      );
       return this.usuarioMapper.entity2DTO(searchUsuario);
     } catch (error) {
       if (this.errorHandler.isHttpException(error)) throw error;
@@ -101,7 +127,11 @@ export class UsuarioService {
     file?: Express.Multer.File,
   ): Promise<UsuarioDTO> {
     try {
-      const usuario = await this.getEntity.findById(Usuario, id, this.USUARIO_RELATIONS);
+      const usuario = await this.getEntity.findById(
+        Usuario,
+        id,
+        this.USUARIO_RELATIONS,
+      );
 
       this.assertCanAccessUser(usuario.id, actor);
 
@@ -109,28 +139,41 @@ export class UsuarioService {
         await this.validateUniqueEmail(request.email);
       }
 
-      const nuevaUrlFotoPerfil = await this.profileImageService.resolveFotoPerfil(
-        usuario,
-        request.urlFotoPerfil,
-        file,
-      );
+      const nuevaUrlFotoPerfil =
+        await this.profileImageService.resolveFotoPerfil(
+          usuario,
+          request.urlFotoPerfil,
+          file,
+        );
 
       if (request.nombre !== undefined || request.apellido !== undefined) {
         if (!usuario.persona) {
-          this.errorHandler.throwNotFound(ERRORS.DATABASE.RECORD_NOT_FOUND, { usuarioId: id });
+          this.errorHandler.throwNotFound(ERRORS.DATABASE.RECORD_NOT_FOUND, {
+            usuarioId: id,
+          });
         }
-        const personaActualizada = await this.personaMapper.updateDTO2Entity(usuario.persona, {
-          nombre: request.nombre,
-          apellido: request.apellido,
-        });
+        const personaActualizada = await this.personaMapper.updateDTO2Entity(
+          usuario.persona,
+          {
+            nombre: request.nombre,
+            apellido: request.apellido,
+          },
+        );
         await this.personaRepository.save(personaActualizada);
       }
 
-      const updateUsuario = await this.usuarioMapper.updateDTO2Entity(usuario, request);
+      const updateUsuario = await this.usuarioMapper.updateDTO2Entity(
+        usuario,
+        request,
+      );
       updateUsuario.fotoPerfil = nuevaUrlFotoPerfil;
       await this.usuarioRepository.save(updateUsuario);
 
-      const searchUsuario = await this.getEntity.findById(Usuario, id, this.USUARIO_RELATIONS);
+      const searchUsuario = await this.getEntity.findById(
+        Usuario,
+        id,
+        this.USUARIO_RELATIONS,
+      );
       return this.usuarioMapper.entity2DTO(searchUsuario);
     } catch (error) {
       if (this.errorHandler.isHttpException(error)) throw error;
@@ -147,7 +190,9 @@ export class UsuarioService {
       });
 
       if (!usuario) {
-        this.errorHandler.throwNotFound(ERRORS.DATABASE.RECORD_NOT_FOUND, { id });
+        this.errorHandler.throwNotFound(ERRORS.DATABASE.RECORD_NOT_FOUND, {
+          id,
+        });
       }
 
       if (usuario.persona) {
@@ -163,10 +208,7 @@ export class UsuarioService {
     return actor.rolId === AUTH_CONSTANTS.ADMIN_ROLE_ID;
   }
 
-  private assertCanAccessUser(
-    targetUserId: number,
-    actor: ActorContext,
-  ): void {
+  private assertCanAccessUser(targetUserId: number, actor: ActorContext): void {
     const actorId = actor.id != null ? Number(actor.id) : NaN;
     if (!Number.isNaN(actorId) && actorId === targetUserId) {
       return;
@@ -174,26 +216,40 @@ export class UsuarioService {
     if (this.isAdmin(actor)) {
       return;
     }
-    this.errorHandler.throwForbidden(ERRORS.AUTHORIZATION.FORBIDDEN, 'No tienes permiso para acceder a este usuario');
+    this.errorHandler.throwForbidden(
+      ERRORS.AUTHORIZATION.FORBIDDEN,
+      'No tienes permiso para acceder a este usuario',
+    );
   }
 
   private async validateUniqueEmail(email: string): Promise<void> {
     const existing = await this.getEntity.findOneBy(Usuario, { email });
     if (existing) {
-      this.errorHandler.throwBadRequest(ERRORS.USER.EMAIL_ALREADY_EXISTS, `El email "${email}" ya está registrado`);
+      this.errorHandler.throwBadRequest(
+        ERRORS.USER.EMAIL_ALREADY_EXISTS,
+        `El email "${email}" ya está registrado`,
+      );
     }
   }
 
   async login(loginDto: LoginUsuarioRequestDto): Promise<UsuarioDTO> {
     const usuario = await this.findByEmail(loginDto.email);
 
-    const isPasswordValid = await bcrypt.compare(loginDto.contrasena, usuario.contrasena);
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.contrasena,
+      usuario.contrasena,
+    );
     if (!isPasswordValid) {
-      this.errorHandler.throwUnauthorized(ERRORS.AUTHENTICATION.INVALID_CREDENTIALS, 'La contraseña es incorrecta');
+      this.errorHandler.throwUnauthorized(
+        ERRORS.AUTHENTICATION.INVALID_CREDENTIALS,
+        'La contraseña es incorrecta',
+      );
     }
 
     if (!usuario.activo) {
-      this.errorHandler.throwUnauthorized(ERRORS.AUTHENTICATION.ACCOUNT_DISABLED);
+      this.errorHandler.throwUnauthorized(
+        ERRORS.AUTHENTICATION.ACCOUNT_DISABLED,
+      );
     }
 
     usuario.ultimoAcceso = new Date();
@@ -202,7 +258,9 @@ export class UsuarioService {
   }
 
   async updateUltimoAcceso(userId: number): Promise<void> {
-    const usuario = await this.usuarioRepository.findOne({ where: { id: userId } });
+    const usuario = await this.usuarioRepository.findOne({
+      where: { id: userId },
+    });
     if (usuario) {
       usuario.ultimoAcceso = new Date();
       await this.usuarioRepository.save(usuario);
@@ -214,5 +272,4 @@ export class UsuarioService {
     usuario.contrasena = await bcrypt.hash(nuevaContrasena, 10);
     await this.usuarioRepository.save(usuario);
   }
-
 }

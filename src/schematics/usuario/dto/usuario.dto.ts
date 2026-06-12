@@ -5,11 +5,17 @@ import { PersonaDTO } from 'src/schematics/persona/dto/persona.dto';
 import { SuscripcionResumenDto } from 'src/schematics/suscripcion/dto/suscripcion-resumen.dto';
 
 export class UsuarioDTO extends CommonDTO {
-  @ApiProperty({ description: 'Email del usuario', example: 'usuario@ejemplo.com' })
+  @ApiProperty({
+    description: 'Email del usuario',
+    example: 'usuario@ejemplo.com',
+  })
   @Expose()
   email: string;
 
-  @ApiProperty({ description: 'Si el correo electrónico fue verificado con el código', example: false })
+  @ApiProperty({
+    description: 'Si el correo electrónico fue verificado con el código',
+    example: false,
+  })
   @Expose()
   emailVerificado: boolean;
 
@@ -17,11 +23,20 @@ export class UsuarioDTO extends CommonDTO {
   @Expose()
   activo: boolean;
 
-  @ApiProperty({ description: 'Último acceso del usuario', example: '2024-01-01T00:00:00.000Z', required: false })
+  @ApiProperty({
+    description: 'Último acceso del usuario',
+    example: '2024-01-01T00:00:00.000Z',
+    required: false,
+  })
   @Expose()
   ultimoAcceso?: Date;
 
-  @ApiProperty({ description: 'Foto de perfil del usuario', type: String, required: false, example: 'https://example.com/foto-perfil.jpg' })
+  @ApiProperty({
+    description: 'Foto de perfil del usuario',
+    type: String,
+    required: false,
+    example: 'https://example.com/foto-perfil.jpg',
+  })
   @Expose()
   fotoPerfil?: string;
 
@@ -30,15 +45,16 @@ export class UsuarioDTO extends CommonDTO {
   @Type(() => PersonaDTO)
   persona: PersonaDTO;
 
-  @ApiPropertyOptional({ description: 'Suscripción y plan (PuestoGo)', type: () => SuscripcionResumenDto })
+  @ApiPropertyOptional({
+    description: 'Suscripción y plan (PuestoGo)',
+    type: () => SuscripcionResumenDto,
+  })
   @Expose()
   @Type(() => SuscripcionResumenDto)
   suscripcion?: SuscripcionResumenDto | null;
-
 }
 
 export class UsuarioSimpleDTO {
-
   @ApiProperty({ description: 'ID del usuario', type: Number })
   @Expose()
   id: number;
@@ -54,5 +70,4 @@ export class UsuarioSimpleDTO {
   @ApiProperty({ description: 'Último acceso del usuario', type: Date })
   @Expose()
   ultimoAcceso?: Date;
-
 }

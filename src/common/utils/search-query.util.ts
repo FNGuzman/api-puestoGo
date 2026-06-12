@@ -8,7 +8,9 @@ function resolveSortableColumn<T extends ObjectLiteral>(
   const token = field.trim();
   if (!token) return null;
 
-  const aliases = queryBuilder.expressionMap.aliases.filter((a) => Boolean(a.metadata));
+  const aliases = queryBuilder.expressionMap.aliases.filter((a) =>
+    Boolean(a.metadata),
+  );
   if (!aliases.length) return null;
 
   const matches: string[] = [];

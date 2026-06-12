@@ -31,6 +31,9 @@ export class PlanCatalogoDto {
   @ApiProperty()
   permiteAjusteMasivoStock: boolean;
 
-  @ApiProperty({ description: 'Precio de un pago anual (10× tarifa mensual: 2 meses de regalo)' })
+  @ApiProperty({
+    description:
+      'Precio de un pago anual (10× tarifa mensual: 2 meses de regalo)',
+  })
   precioAnual: string;
 }

@@ -21,11 +21,11 @@ export class PersonaMapper {
     const personaDTO = plainToInstance(PersonaDTO, persona, {
       excludeExtraneousValues: true,
     });
-    
+
     const usuarioDTO: UsuarioSimpleDTO | undefined = persona.usuario
       ? this.usuarioToSimpleDTO(persona.usuario)
       : undefined;
-    
+
     return {
       ...personaDTO,
       usuario: usuarioDTO,
@@ -40,32 +40,42 @@ export class PersonaMapper {
       const personaDTO = plainToInstance(PersonaDTO, persona, {
         excludeExtraneousValues: true,
       });
-      
+
       const usuarioDTO: UsuarioSimpleDTO | undefined = persona.usuario
         ? this.usuarioToSimpleDTO(persona.usuario)
         : undefined;
-      
+
       return {
         ...personaDTO,
         usuario: usuarioDTO,
       } as PersonaEnrichedDTO;
     });
-    
-    const pageDto = new PageDto<PersonaEnrichedDTO>(enrichedDtos, page.metadata.count);
-    pageDto.metadata.setPaginationData(request.getPageNumber(), request.getTake());
+
+    const pageDto = new PageDto<PersonaEnrichedDTO>(
+      enrichedDtos,
+      page.metadata.count,
+    );
+    pageDto.metadata.setPaginationData(
+      request.getPageNumber(),
+      request.getTake(),
+    );
     pageDto.metadata.sortBy = request.sortBy;
     return pageDto;
   }
 
   private usuarioToSimpleDTO(usuario: Usuario): UsuarioSimpleDTO {
-    return plainToInstance(UsuarioSimpleDTO, {
-      id: usuario.id,
-      email: usuario.email,
-      activo: usuario.activo,
-      ultimoAcceso: usuario.ultimoAcceso,
-    }, {
-      excludeExtraneousValues: true,
-    });
+    return plainToInstance(
+      UsuarioSimpleDTO,
+      {
+        id: usuario.id,
+        email: usuario.email,
+        activo: usuario.activo,
+        ultimoAcceso: usuario.ultimoAcceso,
+      },
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
   async createDTO2Entity(request: CreatePersonaRequestDto): Promise<Persona> {

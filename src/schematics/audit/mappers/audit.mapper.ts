@@ -33,9 +33,7 @@ export class AuditoriaMapper {
     return pageDto;
   }
 
-  async createDTO2Entity(
-    request: CreateAuditLogDto,
-  ): Promise<AuditLog> {
+  async createDTO2Entity(request: CreateAuditLogDto): Promise<AuditLog> {
     const newAuditLog: AuditLog = new AuditLog();
     newAuditLog.userId = request.userId;
     newAuditLog.action = request.action;
@@ -46,7 +44,7 @@ export class AuditoriaMapper {
     newAuditLog.method = request.method;
     newAuditLog.path = request.path;
     newAuditLog.requestId = request.requestId;
-   
+
     return newAuditLog;
   }
 }

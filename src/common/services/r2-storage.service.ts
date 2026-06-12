@@ -1,4 +1,9 @@
-import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   S3Client,
   PutObjectCommand,
@@ -151,14 +156,10 @@ export class R2StorageService {
     this.logger.error(`Error en ${operation} para ${clave}:`, errorDetails);
 
     if (error.name === 'NoSuchKey' || error.name === 'NotFound') {
-      throw new NotFoundException(
-        `Archivo no encontrado: ${clave}`,
-      );
+      throw new NotFoundException(`Archivo no encontrado: ${clave}`);
     }
 
-    throw new BadRequestException(
-      `Error al ${operation}: ${error.message}`,
-    );
+    throw new BadRequestException(`Error al ${operation}: ${error.message}`);
   }
 
   /**
@@ -176,11 +177,18 @@ export class R2StorageService {
       ?.toLowerCase();
 
     if (ext === 'png' || mime.includes('png')) return 'image/png';
-    if (ext === 'jpg' || ext === 'jpeg' || mime.includes('jpeg') || mime.includes('jpg')) return 'image/jpeg';
+    if (
+      ext === 'jpg' ||
+      ext === 'jpeg' ||
+      mime.includes('jpeg') ||
+      mime.includes('jpg')
+    )
+      return 'image/jpeg';
     if (ext === 'gif' || mime.includes('gif')) return 'image/gif';
     if (ext === 'webp' || mime.includes('webp')) return 'image/webp';
     if (ext === 'bmp' || mime.includes('bmp')) return 'image/bmp';
-    if (ext === 'tif' || ext === 'tiff' || mime.includes('tiff')) return 'image/tiff';
+    if (ext === 'tif' || ext === 'tiff' || mime.includes('tiff'))
+      return 'image/tiff';
     if (ext === 'svg' || mime.includes('svg+xml')) return 'image/svg+xml';
 
     // Fallback: mantenemos el mime original.
@@ -267,7 +275,8 @@ export class R2StorageService {
     this.validateFileSize(buffer.length);
 
     const isImage = this.imageOptimizationService.isImage(tipoMime);
-    const shouldOptimize = isImage && this.imageOptimizationService.shouldOptimize(buffer.length);
+    const shouldOptimize =
+      isImage && this.imageOptimizationService.shouldOptimize(buffer.length);
 
     if (!shouldOptimize) {
       const url = await this.subirArchivo(buffer, clave, tipoMime, metadata);
@@ -284,10 +293,17 @@ export class R2StorageService {
         buffer,
         tipoMime,
         {
-          maxWidth: options.maxWidth ?? R2_STORAGE_CONFIG.imageOptimization.defaultMaxWidth,
-          maxHeight: options.maxHeight ?? R2_STORAGE_CONFIG.imageOptimization.defaultMaxHeight,
-          quality: options.quality ?? R2_STORAGE_CONFIG.imageOptimization.defaultQuality,
-          format: options.format ?? R2_STORAGE_CONFIG.imageOptimization.defaultFormat,
+          maxWidth:
+            options.maxWidth ??
+            R2_STORAGE_CONFIG.imageOptimization.defaultMaxWidth,
+          maxHeight:
+            options.maxHeight ??
+            R2_STORAGE_CONFIG.imageOptimization.defaultMaxHeight,
+          quality:
+            options.quality ??
+            R2_STORAGE_CONFIG.imageOptimization.defaultQuality,
+          format:
+            options.format ?? R2_STORAGE_CONFIG.imageOptimization.defaultFormat,
         },
       );
 
@@ -310,7 +326,8 @@ export class R2StorageService {
         optimization: optimized,
       };
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error desconocido';
+      const message =
+        error instanceof Error ? error.message : 'Error desconocido';
       this.logger.warn(
         `No se pudo optimizar ${clave}, se subirá original. Motivo: ${message}`,
       );

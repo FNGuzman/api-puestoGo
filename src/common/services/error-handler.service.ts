@@ -88,27 +88,45 @@ export class ErrorHandlerService {
 
   // --- Métodos para lanzar excepciones HTTP con ERRORS ---
 
-  throwNotFound(entry: ErrorEntry = ERRORS.DATABASE.RECORD_NOT_FOUND, details?: ErrorDetails): never {
+  throwNotFound(
+    entry: ErrorEntry = ERRORS.DATABASE.RECORD_NOT_FOUND,
+    details?: ErrorDetails,
+  ): never {
     throw new NotFoundException(this.buildErrorBody(entry, details));
   }
 
-  throwBadRequest(entry: ErrorEntry = ERRORS.VALIDATION.INVALID_INPUT, details?: ErrorDetails): never {
+  throwBadRequest(
+    entry: ErrorEntry = ERRORS.VALIDATION.INVALID_INPUT,
+    details?: ErrorDetails,
+  ): never {
     throw new BadRequestException(this.buildErrorBody(entry, details));
   }
 
-  throwUnauthorized(entry: ErrorEntry = ERRORS.AUTHENTICATION.UNAUTHORIZED, details?: ErrorDetails): never {
+  throwUnauthorized(
+    entry: ErrorEntry = ERRORS.AUTHENTICATION.UNAUTHORIZED,
+    details?: ErrorDetails,
+  ): never {
     throw new UnauthorizedException(this.buildErrorBody(entry, details));
   }
 
-  throwForbidden(entry: ErrorEntry = ERRORS.AUTHORIZATION.FORBIDDEN, details?: ErrorDetails): never {
+  throwForbidden(
+    entry: ErrorEntry = ERRORS.AUTHORIZATION.FORBIDDEN,
+    details?: ErrorDetails,
+  ): never {
     throw new ForbiddenException(this.buildErrorBody(entry, details));
   }
 
-  throwConflict(entry: ErrorEntry = ERRORS.DATABASE.DUPLICATE_RECORD, details?: ErrorDetails): never {
+  throwConflict(
+    entry: ErrorEntry = ERRORS.DATABASE.DUPLICATE_RECORD,
+    details?: ErrorDetails,
+  ): never {
     throw new ConflictException(this.buildErrorBody(entry, details));
   }
 
-  throwInternalError(entry: ErrorEntry = ERRORS.SERVER.INTERNAL_ERROR, details?: ErrorDetails): never {
+  throwInternalError(
+    entry: ErrorEntry = ERRORS.SERVER.INTERNAL_ERROR,
+    details?: ErrorDetails,
+  ): never {
     throw new InternalServerErrorException(this.buildErrorBody(entry, details));
   }
 
@@ -123,13 +141,18 @@ export class ErrorHandlerService {
    * Intenta inferir un error del diccionario a partir de errores conocidos (p. ej. TypeORM).
    * Retorna la entrada de error sugerida o null si no aplica.
    */
-  inferErrorFromUnknown(error: unknown): { entry: ErrorEntry; details?: string } | null {
+  inferErrorFromUnknown(
+    error: unknown,
+  ): { entry: ErrorEntry; details?: string } | null {
     if (this.isHttpException(error)) return null;
 
     const message = error instanceof Error ? error.message : String(error);
 
     // TypeORM QueryFailedError (Postgres: código en driverError)
-    const qfe = error as { code?: string; driverError?: { code?: string; detail?: string } };
+    const qfe = error as {
+      code?: string;
+      driverError?: { code?: string; detail?: string };
+    };
     const dbCode = qfe.driverError?.code ?? qfe.code;
     if (dbCode) {
       switch (dbCode) {
@@ -183,7 +206,9 @@ export class ErrorHandlerService {
     }
 
     const details = error instanceof Error ? error.message : String(error);
-    const entry = useInternalForUnknown ? ERRORS.SERVER.INTERNAL_ERROR : defaultEntry;
+    const entry = useInternalForUnknown
+      ? ERRORS.SERVER.INTERNAL_ERROR
+      : defaultEntry;
     this.throwByEntry(entry, details);
   }
 }

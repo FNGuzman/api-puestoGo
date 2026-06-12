@@ -1,5 +1,27 @@
-import { Controller, Post, Body, Get, Request, UseGuards, Patch, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBody, ApiOkResponse, ApiBadRequestResponse, ApiUnauthorizedResponse, ApiCreatedResponse, ApiBearerAuth, ApiParam, ApiConsumes } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Request,
+  UseGuards,
+  Patch,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBody,
+  ApiOkResponse,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiCreatedResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiConsumes,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginUsuarioRequestDto } from '../usuario/dto/login-usuario-request.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
@@ -18,15 +40,17 @@ import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
+@Throttle({ default: { limit: 10, ttl: 60_000 } })
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @UseInterceptors(FileInterceptor('fotoPerfil'))
   @ApiConsumes('multipart/form-data')
   @Post('signup')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Registrar nuevo usuario y autenticarlo',
-    description: 'Registra un nuevo usuario proporcionando su información personal y lo autentica con un token JWT'
+    description:
+      'Registra un nuevo usuario proporcionando su información personal y lo autentica con un token JWT',
   })
   @ApiBody({
     type: SwaggerSignupRequestDto,
@@ -36,7 +60,9 @@ export class AuthController {
     type: SignupResponseDto,
     description: 'Usuario registrado y autenticado exitosamente',
   })
-  @ApiBadRequestResponse({ description: 'Solicitud incorrecta o usuario ya existe' })
+  @ApiBadRequestResponse({
+    description: 'Solicitud incorrecta o usuario ya existe',
+  })
   async signup(
     @Body() signupRequestDto: SignupRequestDto,
     @UploadedFile() file?: Express.Multer.File,
@@ -47,7 +73,8 @@ export class AuthController {
   @Post('login')
   @ApiOperation({
     summary: 'Iniciar sesión de usuario',
-    description: 'Inicia sesión con email y contraseña. Devuelve access_token (Authorization) y refresh_token (guardar para renovar con POST /auth/refresh).',
+    description:
+      'Inicia sesión con email y contraseña. Devuelve access_token (Authorization) y refresh_token (guardar para renovar con POST /auth/refresh).',
   })
   @ApiBody({
     type: LoginUsuarioRequestDto,
@@ -83,20 +110,24 @@ export class AuthController {
       properties: {
         message: {
           type: 'string',
-          example: 'Si el correo está registrado, recibirás un código para restablecer la contraseña.',
+          example:
+            'Si el correo está registrado, recibirás un código para restablecer la contraseña.',
         },
       },
     },
   })
   @ApiBadRequestResponse({ description: 'Email inválido' })
-  async forgotPassword(@Body() body: ForgotPasswordRequestDto): Promise<{ message: string }> {
+  async forgotPassword(
+    @Body() body: ForgotPasswordRequestDto,
+  ): Promise<{ message: string }> {
     return this.authService.forgotPassword(body);
   }
 
   @Post('reset-password')
   @ApiOperation({
     summary: 'Restablecer contraseña con código',
-    description: 'Usa el código recibido por correo (válido 15 minutos) y la nueva contraseña.',
+    description:
+      'Usa el código recibido por correo (válido 15 minutos) y la nueva contraseña.',
   })
   @ApiBody({ type: ResetPasswordRequestDto })
   @ApiOkResponse({
@@ -104,23 +135,33 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: 'Contraseña actualizada correctamente. Ya podés iniciar sesión.' },
+        message: {
+          type: 'string',
+          example:
+            'Contraseña actualizada correctamente. Ya podés iniciar sesión.',
+        },
       },
     },
   })
-  @ApiBadRequestResponse({ description: 'Código inválido o expirado, o datos inválidos' })
-  async resetPassword(@Body() body: ResetPasswordRequestDto): Promise<{ message: string }> {
+  @ApiBadRequestResponse({
+    description: 'Código inválido o expirado, o datos inválidos',
+  })
+  async resetPassword(
+    @Body() body: ResetPasswordRequestDto,
+  ): Promise<{ message: string }> {
     return this.authService.resetPassword(body);
   }
 
   @Post('refresh')
   @ApiOperation({
     summary: 'Renovar tokens',
-    description: 'Intercambia un refresh token válido por un nuevo access_token y refresh_token. Usar cuando el access token expire.',
+    description:
+      'Intercambia un refresh token válido por un nuevo access_token y refresh_token. Usar cuando el access token expire.',
   })
   @ApiBody({
     type: RefreshTokenRequestDto,
-    description: 'Refresh token obtenido en login o en la última llamada a /refresh',
+    description:
+      'Refresh token obtenido en login o en la última llamada a /refresh',
   })
   @ApiOkResponse({
     type: LoginResponseDto,
@@ -137,18 +178,17 @@ export class AuthController {
   @Get('me')
   @UseGuards(FlexibleJwtAuthGuard)
   @ApiBearerAuth('authorization')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Obtener información del usuario autenticado',
-    description: 'Obtiene la información del usuario autenticado proporcionando su token JWT'
+    description:
+      'Obtiene la información del usuario autenticado proporcionando su token JWT',
   })
-  @ApiOkResponse({ 
-    type: UsuarioDTO, 
-    description: 'Información del usuario autenticado obtenida correctamente' 
+  @ApiOkResponse({
+    type: UsuarioDTO,
+    description: 'Información del usuario autenticado obtenida correctamente',
   })
   @ApiUnauthorizedResponse({ description: 'No autorizado' })
-  async getCurrentUser(
-    @Request() req: any
-  ): Promise<UsuarioDTO> {
+  async getCurrentUser(@Request() req: any): Promise<UsuarioDTO> {
     return await this.authService.getCurrentUser(req.user.id);
   }
 
@@ -157,7 +197,8 @@ export class AuthController {
   @ApiBearerAuth('authorization')
   @ApiOperation({
     summary: 'Verificar correo con código',
-    description: 'Verifica el correo del usuario con el código de 6 dígitos enviado por email. Requiere estar autenticado.',
+    description:
+      'Verifica el correo del usuario con el código de 6 dígitos enviado por email. Requiere estar autenticado.',
   })
   @ApiBody({
     type: VerifyEmailRequestDto,
@@ -187,46 +228,51 @@ export class AuthController {
   @ApiBearerAuth('authorization')
   @ApiOperation({
     summary: 'Reenviar código de verificación',
-    description: 'Genera un nuevo código y lo envía al correo del usuario. Usar cuando el código anterior haya expirado o no llegó. Requiere estar autenticado.',
+    description:
+      'Genera un nuevo código y lo envía al correo del usuario. Usar cuando el código anterior haya expirado o no llegó. Requiere estar autenticado.',
   })
   @ApiOkResponse({
     description: 'Código reenviado',
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: 'Código de verificación reenviado a tu correo' },
+        message: {
+          type: 'string',
+          example: 'Código de verificación reenviado a tu correo',
+        },
       },
     },
   })
   @ApiBadRequestResponse({ description: 'El correo ya está verificado' })
   @ApiUnauthorizedResponse({ description: 'No autorizado' })
-  async sendVerificationEmail(@Request() req: any): Promise<{ message: string }> {
+  async sendVerificationEmail(
+    @Request() req: any,
+  ): Promise<{ message: string }> {
     return this.authService.resendVerificationEmail(req.user.id);
   }
 
   @Post('logout')
   @UseGuards(FlexibleJwtAuthGuard)
   @ApiBearerAuth('authorization')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Cerrar sesión de usuario',
-    description: 'Cierra la sesión del usuario autenticado. Actualiza el último acceso y el cliente debe eliminar el token del almacenamiento local.'
+    description:
+      'Cierra la sesión del usuario autenticado. Actualiza el último acceso y el cliente debe eliminar el token del almacenamiento local.',
   })
-  @ApiOkResponse({ 
+  @ApiOkResponse({
     description: 'Sesión cerrada exitosamente',
     schema: {
       type: 'object',
       properties: {
         message: {
           type: 'string',
-          example: 'Sesión cerrada exitosamente'
-        }
-      }
-    }
+          example: 'Sesión cerrada exitosamente',
+        },
+      },
+    },
   })
   @ApiUnauthorizedResponse({ description: 'No autorizado' })
-  async logout(
-    @Request() req: any,
-  ): Promise<{ message: string }> {
+  async logout(@Request() req: any): Promise<{ message: string }> {
     return await this.authService.logout(req.user.id);
   }
 
@@ -235,22 +281,30 @@ export class AuthController {
   @ApiBearerAuth('authorization')
   @ApiOperation({
     summary: 'Cambiar contraseña de usuario',
-    description: 'Cambia la contraseña del usuario autenticado. El email en el body debe ser el de tu sesión. Requiere estar logueado.',
+    description:
+      'Cambia la contraseña del usuario autenticado. El email en el body debe ser el de tu sesión. Requiere estar logueado.',
   })
   @ApiBody({
     type: ChangePasswordRequestDto,
-    description: 'Datos para cambiar la contraseña: email (debe ser el tuyo), nueva contraseña y confirmación',
+    description:
+      'Datos para cambiar la contraseña: email (debe ser el tuyo), nueva contraseña y confirmación',
   })
   @ApiOkResponse({
     description: 'Contraseña cambiada exitosamente',
     type: ChangePasswordResponseDto,
   })
-  @ApiBadRequestResponse({ description: 'Las contraseñas no coinciden, el email no es el de tu cuenta o datos inválidos' })
+  @ApiBadRequestResponse({
+    description:
+      'Las contraseñas no coinciden, el email no es el de tu cuenta o datos inválidos',
+  })
   @ApiUnauthorizedResponse({ description: 'No autorizado' })
   async changePassword(
     @Request() req: any,
     @Body() changePasswordDto: ChangePasswordRequestDto,
   ): Promise<ChangePasswordResponseDto> {
-    return await this.authService.changePassword(changePasswordDto, req.user.id);
+    return await this.authService.changePassword(
+      changePasswordDto,
+      req.user.id,
+    );
   }
 }

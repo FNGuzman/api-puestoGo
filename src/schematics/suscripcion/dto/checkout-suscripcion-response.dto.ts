@@ -7,7 +7,10 @@ export class CheckoutSuscripcionResponseDto {
   @ApiPropertyOptional()
   preference_id?: string;
 
-  @ApiPropertyOptional({ description: 'Si true, el plan ya se aplicó sin pasar por MP (solo desarrollo)' })
+  @ApiPropertyOptional({
+    description:
+      'Si true, el plan ya se aplicó sin pasar por MP (solo desarrollo)',
+  })
   mock?: boolean;
 
   @ApiPropertyOptional()

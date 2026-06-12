@@ -16,7 +16,7 @@ export class NotificationsService {
     private deviceTokenRepository: DeviceTokenRepository,
     private notificacionRepository: NotificacionRepository,
     private firebaseService: FirebaseService,
-  ) { }
+  ) {}
 
   /**
    * Registra o actualiza el token FCM de un usuario.
@@ -29,7 +29,10 @@ export class NotificationsService {
     deviceId?: string | null,
     deviceName?: string | null,
   ): Promise<void> {
-    const existing = await this.deviceTokenRepository.findOneByUsuarioAndToken(usuarioId, fcmToken);
+    const existing = await this.deviceTokenRepository.findOneByUsuarioAndToken(
+      usuarioId,
+      fcmToken,
+    );
     if (existing) {
       existing.platform = platform;
       if (deviceId !== undefined) existing.deviceId = deviceId ?? null;
@@ -58,7 +61,10 @@ export class NotificationsService {
   ): Promise<number> {
     const rawType = payload.data?.type;
     const tipo =
-      rawType && Object.values(TipoNotificacionEnum).includes(rawType as TipoNotificacionEnum)
+      rawType &&
+      Object.values(TipoNotificacionEnum).includes(
+        rawType as TipoNotificacionEnum,
+      )
         ? (rawType as TipoNotificacionEnum)
         : TipoNotificacionEnum.OTRO;
     const notificacion = this.notificacionRepository.create({
@@ -93,11 +99,18 @@ export class NotificationsService {
     payload: Omit<FcmMessagePayload, 'token' | 'tokens'>,
   ): Promise<number> {
     const notificacionId = await this.persistNotification(usuarioId, payload);
-    const tokens = await this.deviceTokenRepository.findTokensByUsuarioId(usuarioId);
+    const tokens =
+      await this.deviceTokenRepository.findTokensByUsuarioId(usuarioId);
     const fcmTokens = tokens.map((t) => t.fcmToken).filter(Boolean);
     if (fcmTokens.length === 0) return 0;
-    const payloadWithId = this.payloadWithNotificacionId(payload, notificacionId);
-    return this.firebaseService.sendToTokens({ ...payloadWithId, tokens: fcmTokens });
+    const payloadWithId = this.payloadWithNotificacionId(
+      payload,
+      notificacionId,
+    );
+    return this.firebaseService.sendToTokens({
+      ...payloadWithId,
+      tokens: fcmTokens,
+    });
   }
 
   /**
@@ -113,11 +126,18 @@ export class NotificationsService {
     let totalSent = 0;
     for (const uid of usuarioIds) {
       const notificacionId = await this.persistNotification(uid, payload);
-      const tokens = await this.deviceTokenRepository.findTokensByUsuarioId(uid);
+      const tokens =
+        await this.deviceTokenRepository.findTokensByUsuarioId(uid);
       const fcmTokens = tokens.map((t) => t.fcmToken).filter(Boolean);
       if (fcmTokens.length === 0) continue;
-      const payloadWithId = this.payloadWithNotificacionId(payload, notificacionId);
-      totalSent += await this.firebaseService.sendToTokens({ ...payloadWithId, tokens: fcmTokens });
+      const payloadWithId = this.payloadWithNotificacionId(
+        payload,
+        notificacionId,
+      );
+      totalSent += await this.firebaseService.sendToTokens({
+        ...payloadWithId,
+        tokens: fcmTokens,
+      });
     }
     return totalSent;
   }
@@ -142,15 +162,23 @@ export class NotificationsService {
   async sendToAllUsers(
     payload: Omit<FcmMessagePayload, 'token' | 'tokens'>,
   ): Promise<number> {
-    const usuarioIds = await this.deviceTokenRepository.findDistinctUsuarioIds();
+    const usuarioIds =
+      await this.deviceTokenRepository.findDistinctUsuarioIds();
     let totalSent = 0;
     for (const uid of usuarioIds) {
       const notificacionId = await this.persistNotification(uid, payload);
-      const tokens = await this.deviceTokenRepository.findTokensByUsuarioId(uid);
+      const tokens =
+        await this.deviceTokenRepository.findTokensByUsuarioId(uid);
       const fcmTokens = tokens.map((t) => t.fcmToken).filter(Boolean);
       if (fcmTokens.length === 0) continue;
-      const payloadWithId = this.payloadWithNotificacionId(payload, notificacionId);
-      totalSent += await this.firebaseService.sendToTokens({ ...payloadWithId, tokens: fcmTokens });
+      const payloadWithId = this.payloadWithNotificacionId(
+        payload,
+        notificacionId,
+      );
+      totalSent += await this.firebaseService.sendToTokens({
+        ...payloadWithId,
+        tokens: fcmTokens,
+      });
     }
     return totalSent;
   }
@@ -165,7 +193,9 @@ export class NotificationsService {
   }): Promise<number> {
     return this.sendToUser(params.usuarioId, {
       title: 'Nueva versión disponible',
-      body: params.mensaje ?? 'Hay una nueva versión de iPet disponible. Actualiza para disfrutar de las mejoras.',
+      body:
+        params.mensaje ??
+        'Hay una nueva versión de iPet disponible. Actualiza para disfrutar de las mejoras.',
       data: {
         type: 'nueva_version',
         ...(params.version ? { version: params.version } : {}),
@@ -200,13 +230,19 @@ export class NotificationsService {
     usuarioId: number,
     request: SearchNotificacionRequestDto,
   ): Promise<PageDto<NotificacionDTO>> {
-    const page = await this.notificacionRepository.findPageByUsuarioId(usuarioId, request);
+    const page = await this.notificacionRepository.findPageByUsuarioId(
+      usuarioId,
+      request,
+    );
     page.metadata.setPaginationData(request.getPageNumber(), request.getTake());
     const dtos = page.data.map((n) =>
       plainToInstance(NotificacionDTO, n, { excludeExtraneousValues: true }),
     );
     const result = new PageDto<NotificacionDTO>(dtos, page.metadata.count);
-    result.metadata.setPaginationData(request.getPageNumber(), request.getTake());
+    result.metadata.setPaginationData(
+      request.getPageNumber(),
+      request.getTake(),
+    );
     return result;
   }
 

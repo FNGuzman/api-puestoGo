@@ -14,11 +14,19 @@ export class UsuarioSuscripcion extends BaseEntity {
   @JoinColumn({ name: 'rela_user01' })
   usuario: Usuario;
 
-  @ManyToOne(() => Plan, (p) => p.suscripciones, { eager: true, nullable: false })
+  @ManyToOne(() => Plan, (p) => p.suscripciones, {
+    eager: true,
+    nullable: false,
+  })
   @JoinColumn({ name: 'rela_sub02' })
   plan: Plan;
 
-  @Column({ name: 'sub01_estado', type: 'varchar', length: 20, default: SuscripcionEstado.ACTIVA })
+  @Column({
+    name: 'sub01_estado',
+    type: 'varchar',
+    length: 20,
+    default: SuscripcionEstado.ACTIVA,
+  })
   estado: SuscripcionEstado;
 
   /** Fin del período pagado / trial (`subscriptionValidUntil` en la app). */
@@ -32,7 +40,12 @@ export class UsuarioSuscripcion extends BaseEntity {
   @Column({ name: 'sub01_ultima_validacion', type: 'datetime', nullable: true })
   ultimaValidacionEn: Date | null;
 
-  @Column({ name: 'sub01_ciclo', type: 'varchar', length: 16, default: SuscripcionCiclo.MENSUAL })
+  @Column({
+    name: 'sub01_ciclo',
+    type: 'varchar',
+    length: 16,
+    default: SuscripcionCiclo.MENSUAL,
+  })
   ciclo: SuscripcionCiclo;
 
   @Column({ name: 'sub01_renovacion_auto', type: 'boolean', default: true })

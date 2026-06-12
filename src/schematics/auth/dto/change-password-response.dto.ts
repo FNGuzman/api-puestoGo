@@ -3,8 +3,11 @@ import { Expose, Type } from 'class-transformer';
 import { UsuarioDTO } from 'src/schematics/usuario/dto/usuario.dto';
 
 export class ChangePasswordResponseDto {
-
-  @ApiProperty({ description: 'Mensaje de confirmación', type: String, example: 'Contraseña cambiada exitosamente' })
+  @ApiProperty({
+    description: 'Mensaje de confirmación',
+    type: String,
+    example: 'Contraseña cambiada exitosamente',
+  })
   @Expose()
   message: string;
 
@@ -12,5 +15,4 @@ export class ChangePasswordResponseDto {
   @Expose()
   @Type(() => UsuarioDTO)
   usuario: UsuarioDTO;
-
 }

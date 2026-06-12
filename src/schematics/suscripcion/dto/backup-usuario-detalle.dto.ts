@@ -10,6 +10,8 @@ export class BackupUsuarioDetalleDto {
   @ApiProperty()
   creadoEn: string;
 
-  @ApiProperty({ description: 'Mismo formato que exporta la app (importable).' })
+  @ApiProperty({
+    description: 'Mismo formato que exporta la app (importable).',
+  })
   payload: Record<string, unknown>;
 }

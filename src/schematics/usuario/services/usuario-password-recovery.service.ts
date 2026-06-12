@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { ERRORS } from 'src/common/errors/errors-codes';
 import { ErrorHandlerService } from 'src/common/services/error-handler.service';
-import { formatDateArgentina, parseArgentinaToDate } from 'src/common/utils/date-argentina';
+import {
+  formatDateArgentina,
+  parseArgentinaToDate,
+} from 'src/common/utils/date-argentina';
 import { Usuario } from '../entities/usuario.entity';
 import { UsuarioRepository } from '../repository/usuario.repository';
 
@@ -32,7 +35,9 @@ export class UsuarioPasswordRecoveryService {
    * Genera código, lo guarda y devuelve datos para enviar el correo.
    * Null si no hay cuenta activa (respuesta genérica al cliente).
    */
-  async crearCodigoRecuperacion(email: string): Promise<{ email: string; codigo: string } | null> {
+  async crearCodigoRecuperacion(
+    email: string,
+  ): Promise<{ email: string; codigo: string } | null> {
     const usuario = await this.findByEmailInsensitive(email);
     if (!usuario || !usuario.activo) {
       return null;
@@ -45,7 +50,11 @@ export class UsuarioPasswordRecoveryService {
     return { email: usuario.email, codigo };
   }
 
-  async restablecerConCodigo(email: string, codigo: string, nuevaContrasena: string): Promise<void> {
+  async restablecerConCodigo(
+    email: string,
+    codigo: string,
+    nuevaContrasena: string,
+  ): Promise<void> {
     const usuario = await this.findByEmailInsensitive(email);
     if (!usuario || !usuario.activo) {
       this.errorHandler.throwBadRequest(
@@ -54,7 +63,10 @@ export class UsuarioPasswordRecoveryService {
       );
     }
     const codigoNorm = codigo.trim();
-    if (!usuario.codigoRecuperacionContrasena || usuario.codigoRecuperacionContrasena !== codigoNorm) {
+    if (
+      !usuario.codigoRecuperacionContrasena ||
+      usuario.codigoRecuperacionContrasena !== codigoNorm
+    ) {
       this.errorHandler.throwBadRequest(
         ERRORS.VALIDATION.INVALID_INPUT,
         'Código inválido o expirado. Solicitá uno nuevo desde "Olvidé mi contraseña".',

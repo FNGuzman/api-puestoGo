@@ -25,7 +25,9 @@ export class GetEntityService {
     return this.entityManager.getRepository(entityClass);
   }
 
-  private getEntityName<T extends ObjectLiteral>(entityClass: EntityTarget<T>): string {
+  private getEntityName<T extends ObjectLiteral>(
+    entityClass: EntityTarget<T>,
+  ): string {
     if (typeof entityClass === 'function') return entityClass.name;
     if (typeof entityClass === 'string') return entityClass;
     return 'unknown_entity';

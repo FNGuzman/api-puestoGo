@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import { getVerificationEmailHtml, CODIGO_EXPIRA_MINUTOS } from './templates/verification-email.template';
+import {
+  getVerificationEmailHtml,
+  CODIGO_EXPIRA_MINUTOS,
+} from './templates/verification-email.template';
 import { getPasswordResetEmailHtml } from './templates/password-reset-email.template';
 
 /** Lee una variable de entorno y la normaliza: trim y quita comillas al inicio/final (por si viene "valor" o 'valor'). */
@@ -8,7 +11,10 @@ function getEnvNormalized(key: string): string {
   const raw = process.env[key];
   if (raw == null) return '';
   let value = raw.trim();
-  if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
     value = value.slice(1, -1);
   }
   return value;
@@ -56,9 +62,15 @@ export class EmailService {
   /** Envía el correo con el código de verificación (estética Nonna). No lanza si SMTP no está configurado (solo log). */
   async sendVerificationEmail(to: string, codigo: string): Promise<void> {
     const trans = this.getTransporter();
-    const from = getEnvNormalized('SMTP_FROM') || getEnvNormalized('SMTP_USER') || 'noreply@example.com';
+    const from =
+      getEnvNormalized('SMTP_FROM') ||
+      getEnvNormalized('SMTP_USER') ||
+      'noreply@example.com';
     if (!trans) {
-      console.warn('[EmailService] SMTP no configurado. Código de verificación (para pruebas):', codigo);
+      console.warn(
+        '[EmailService] SMTP no configurado. Código de verificación (para pruebas):',
+        codigo,
+      );
       return;
     }
     const logoUrl = getEnvNormalized('EMAIL_LOGO_URL') || null;
@@ -78,7 +90,10 @@ export class EmailService {
       } catch (err) {
         const isLastAttempt = attempt === this.RETRY_DELAYS_MS.length;
         if (!this.shouldRetry(err) || isLastAttempt) {
-          console.error('[EmailService] Error al enviar correo de verificación:', err);
+          console.error(
+            '[EmailService] Error al enviar correo de verificación:',
+            err,
+          );
           throw err;
         }
         const delay = this.RETRY_DELAYS_MS[attempt];
@@ -93,9 +108,15 @@ export class EmailService {
   /** Envía código de recuperación de contraseña (misma configuración SMTP que verificación). */
   async sendPasswordResetEmail(to: string, codigo: string): Promise<void> {
     const trans = this.getTransporter();
-    const from = getEnvNormalized('SMTP_FROM') || getEnvNormalized('SMTP_USER') || 'noreply@example.com';
+    const from =
+      getEnvNormalized('SMTP_FROM') ||
+      getEnvNormalized('SMTP_USER') ||
+      'noreply@example.com';
     if (!trans) {
-      console.warn('[EmailService] SMTP no configurado. Código de recuperación (para pruebas):', codigo);
+      console.warn(
+        '[EmailService] SMTP no configurado. Código de recuperación (para pruebas):',
+        codigo,
+      );
       return;
     }
     const logoUrl = getEnvNormalized('EMAIL_LOGO_URL') || null;
@@ -115,7 +136,10 @@ export class EmailService {
       } catch (err) {
         const isLastAttempt = attempt === this.RETRY_DELAYS_MS.length;
         if (!this.shouldRetry(err) || isLastAttempt) {
-          console.error('[EmailService] Error al enviar correo de recuperación:', err);
+          console.error(
+            '[EmailService] Error al enviar correo de recuperación:',
+            err,
+          );
           throw err;
         }
         const delay = this.RETRY_DELAYS_MS[attempt];

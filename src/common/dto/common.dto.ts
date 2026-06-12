@@ -38,5 +38,4 @@ export class CommonDTO {
   @IsDate()
   @IsOptional()
   deletedAt: Date;
-
 }

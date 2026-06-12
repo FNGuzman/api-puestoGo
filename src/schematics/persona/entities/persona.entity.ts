@@ -4,7 +4,6 @@ import { Column, Entity, OneToOne } from 'typeorm';
 
 @Entity('user_02_cab_persona')
 export class Persona extends BaseEntity {
-
   @Column({ name: 'user02_nombre', type: 'varchar', length: 100 })
   nombre: string;
 

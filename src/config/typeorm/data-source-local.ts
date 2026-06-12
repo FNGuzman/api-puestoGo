@@ -9,17 +9,17 @@ export const DataSourceConfigLocal: DataSourceOptions = {
   timezone: process.env.DB_TIMEZONE || '-03:00',
   type: 'mysql',
   host: process.env.DB_HOST || 'localhost',
-  port: +(process.env.DB_PORT)!,
+  port: +process.env.DB_PORT!,
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'puestoGo',
-  entities: [
-    __dirname + '/../../schematics/**/entities/*.entity{.ts,.js}',
-  ],
+  entities: [__dirname + '/../../schematics/**/entities/*.entity{.ts,.js}'],
   subscribers: [AuditSubscriber],
   logging: false,
   /** Solo con DB_SYNCHRONIZE=true (desarrollo). En producción usar migraciones. */
   synchronize: process.env.DB_SYNCHRONIZE?.trim().toLowerCase() === 'true',
+  migrations: [__dirname + '/../../migrations/*{.ts,.js}'],
+  migrationsRun: process.env.DB_MIGRATIONS_RUN?.trim().toLowerCase() === 'true',
   extra: {
     timezone: process.env.DB_TIMEZONE || '-03:00',
     charset: 'utf8mb4',

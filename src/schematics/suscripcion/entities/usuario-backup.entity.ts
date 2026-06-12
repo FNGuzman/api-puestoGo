@@ -17,17 +17,32 @@ export class UsuarioBackup extends BaseEntity {
   nombreOriginal: string;
 
   @AuditExclude()
-  @Column({ name: 'sub04_clave_almacenamiento', type: 'varchar', length: 1000, nullable: true })
+  @Column({
+    name: 'sub04_clave_almacenamiento',
+    type: 'varchar',
+    length: 1000,
+    nullable: true,
+  })
   claveAlmacenamiento: string | null;
 
   @Column({ name: 'sub04_tamano_bytes', type: 'bigint', default: 0 })
   tamanoBytes: string;
 
   @AuditExclude()
-  @Column({ name: 'sub04_checksum_sha256', type: 'varchar', length: 64, nullable: true })
+  @Column({
+    name: 'sub04_checksum_sha256',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
   checksumSha256: string | null;
 
-  @Column({ name: 'sub04_origen', type: 'varchar', length: 32, default: 'upload' })
+  @Column({
+    name: 'sub04_origen',
+    type: 'varchar',
+    length: 32,
+    default: 'upload',
+  })
   origen: string;
 
   /** Copia completa del backup (JSON) en base de datos; apto para Kubernetes sin volumen compartido. */

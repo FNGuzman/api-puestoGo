@@ -1,4 +1,4 @@
-// “hilo invisible” que une middleware de logging ↔ subscriber de TypeORM 
+// “hilo invisible” que une middleware de logging ↔ subscriber de TypeORM
 // para que la auditoría sepa requestId y userId sin inyectar Request en el subscriber.
 
 import { AsyncLocalStorage } from 'node:async_hooks';
