@@ -117,7 +117,7 @@ export class AuthService {
       if (Number.isNaN(userId)) {
         throw new UnauthorizedException('Refresh token inválido');
       }
-      const usuario = await this.usuarioService.findOne(userId);
+      const usuario = await this.usuarioService.findOne(userId, { id: userId });
       if (!usuario) {
         throw new UnauthorizedException('Usuario ya no existe');
       }
@@ -145,6 +145,7 @@ export class AuthService {
     await this.usuarioService.updateUltimoAcceso(nuevoUsuario.id);
     const usuarioActualizado = await this.usuarioService.findOne(
       nuevoUsuario.id,
+      { id: nuevoUsuario.id },
     );
     const { access_token, refresh_token } =
       this.generateTokenPair(usuarioActualizado);
@@ -202,7 +203,7 @@ export class AuthService {
   }
 
   async getCurrentUser(userId: number): Promise<UsuarioDTO> {
-    return this.usuarioService.findOne(userId);
+    return this.usuarioService.findOne(userId, { id: userId });
   }
 
   async changePassword(
@@ -217,7 +218,7 @@ export class AuthService {
         'La contraseña y su confirmación deben ser iguales',
       );
     }
-    const usuarioActual = await this.usuarioService.findOne(userId);
+    const usuarioActual = await this.usuarioService.findOne(userId, { id: userId });
     if (usuarioActual.email !== changePasswordDto.email) {
       this.errorHandler.throwBadRequest(
         ERRORS.VALIDATION.INVALID_INPUT,
@@ -234,7 +235,7 @@ export class AuthService {
       changePasswordDto.email,
       changePasswordDto.contrasena,
     );
-    const usuarioDTO = await this.usuarioService.findOne(userId);
+    const usuarioDTO = await this.usuarioService.findOne(userId, { id: userId });
     return {
       message: 'Contraseña cambiada exitosamente',
       usuario: usuarioDTO,
