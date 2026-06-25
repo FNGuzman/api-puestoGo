@@ -143,21 +143,11 @@ export class AuthService {
   ): Promise<SignupResponseDto> {
     const nuevoUsuario = await this.usuarioService.create(signupDto, file);
     await this.usuarioService.updateUltimoAcceso(nuevoUsuario.id);
-    const usuarioActualizado = await this.usuarioService.findOne(
+    const usuarioActualizado = await this.usuarioVerificationService.markEmailVerified(
       nuevoUsuario.id,
-      { id: nuevoUsuario.id },
     );
     const { access_token, refresh_token } =
       this.generateTokenPair(usuarioActualizado);
-    this.sendVerificationEmailAfterSignup(
-      nuevoUsuario.id,
-      usuarioActualizado.email,
-    ).catch((err) => {
-      console.error(
-        '[AuthService] Error al enviar email de verificación tras signup:',
-        err,
-      );
-    });
     return {
       access_token,
       refresh_token,
@@ -167,6 +157,7 @@ export class AuthService {
     };
   }
 
+  /** Reservado por si se reactiva verificación por código por email. */
   private async sendVerificationEmailAfterSignup(
     usuarioId: number,
     email: string,
@@ -223,12 +214,6 @@ export class AuthService {
       this.errorHandler.throwBadRequest(
         ERRORS.VALIDATION.INVALID_INPUT,
         'Solo podés cambiar la contraseña de tu propia cuenta (el email debe coincidir con el de tu sesión)',
-      );
-    }
-    if (!usuarioActual.emailVerificado) {
-      this.errorHandler.throwBadRequest(
-        ERRORS.VALIDATION.INVALID_INPUT,
-        'Verificá tu correo primero para poder cambiar tu contraseña. Usá la opción "Verificar correo" en Mi cuenta o Perfil.',
       );
     }
     await this.usuarioService.changePassword(

@@ -31,6 +31,17 @@ export class UsuarioVerificationService {
     await this.usuarioRepository.save(usuario);
   }
 
+  async markEmailVerified(usuarioId: number): Promise<UsuarioDTO> {
+    const usuario = await this.getEntity.findById(Usuario, usuarioId, {
+      persona: true,
+    });
+    usuario.emailVerificado = true;
+    usuario.codigoVerificacionEmail = null;
+    usuario.codigoVerificacionExpiraEn = null;
+    await this.usuarioRepository.save(usuario);
+    return this.usuarioMapper.entity2DTO(usuario);
+  }
+
   async verifyCode(usuarioId: number, codigo: string): Promise<UsuarioDTO> {
     const usuario = await this.getEntity.findById(Usuario, usuarioId, {
       persona: true,
